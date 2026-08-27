@@ -1,10 +1,68 @@
-import { useState } from 'react';
-import { computeStats, setHandle, LEVELS } from '../lib/profile';
+import { useEffect, useState } from 'react';
+import { computeStats, setHandle as setLocalProfileHandle, LEVELS } from '../lib/profile';
 import { SAFETY_META } from '../lib/format';
+import { useCloud } from '../lib/CloudContext';
 
 export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
+  const {
+    user,
+    signedIn,
+    isGuest,
+    authReady,
+    handle,
+    updateHandle,
+    leaderboard,
+    needsMigration,
+    migrate,
+    signInGoogle,
+    signInGuest,
+    signOut,
+  } = useCloud();
+
   const stats = computeStats();
-  const [handle, setHandleInput] = useState(stats.handle);
+  const [handleInput, setHandleInput] = useState(handle || stats.handle);
+  const [authBusy, setAuthBusy] = useState(false);
+  const [migrateMsg, setMigrateMsg] = useState(null);
+  const [migrateDone, setMigrateDone] = useState(false);
+  const [authError, setAuthError] = useState(null);
+
+  useEffect(() => {
+    setHandleInput(handle || stats.handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handle]);
+
+  function commitHandle() {
+    const h = handleInput.trim();
+    updateHandle(h);
+    setLocalProfileHandle(h);
+  }
+
+  async function run(fn) {
+    setAuthBusy(true);
+    setAuthError(null);
+    try {
+      await fn();
+    } catch (e) {
+      console.error(e);
+      if (e?.code !== 'auth/popup-closed-by-user' && e?.code !== 'auth/cancelled-popup-request') {
+        setAuthError('Sign-in failed. Check that this domain is authorized in Firebase.');
+      }
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+
+  async function doMigrate() {
+    setMigrateMsg('Moving…');
+    try {
+      const n = await migrate();
+      setMigrateMsg(n > 0 ? `Moved ${n} post${n > 1 ? 's' : ''} to your account.` : 'Nothing to move.');
+      setMigrateDone(true);
+    } catch (e) {
+      console.error(e);
+      setMigrateMsg('Could not move posts. Try again.');
+    }
+  }
 
   const progress = stats.nextLevel
     ? Math.min(
@@ -27,13 +85,66 @@ export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
 
         <h2>Your card</h2>
 
+        <div className="account">
+          {!authReady ? (
+            <p className="muted">Connecting…</p>
+          ) : signedIn ? (
+            <div className="account-in">
+              <div>
+                <strong>
+                  {isGuest ? 'Signed in as a guest' : user.displayName || user.email}
+                </strong>
+                <span className="muted">
+                  {isGuest
+                    ? 'Your posts are saved to the cloud but tied to this browser.'
+                    : user.email}
+                </span>
+              </div>
+              <button className="btn btn-ghost" onClick={() => run(signOut)} disabled={authBusy}>
+                Sign out
+              </button>
+            </div>
+          ) : (
+            <div className="account-out">
+              <p className="muted">
+                Sign in to post to the shared feed, sync your card across devices,
+                and land on the leaderboard.
+              </p>
+              <div className="account-btns">
+                <button className="btn" onClick={() => run(signInGoogle)} disabled={authBusy}>
+                  Continue with Google
+                </button>
+                <button
+                  className="btn btn-ghost"
+                  onClick={() => run(signInGuest)}
+                  disabled={authBusy}
+                >
+                  Continue as guest
+                </button>
+              </div>
+            </div>
+          )}
+          {authError ? <p className="rf-note rf-note-warn">{authError}</p> : null}
+          {needsMigration && !migrateDone ? (
+            <div className="migrate">
+              <p>You have posts saved on this device. Move them to your account?</p>
+              <button className="btn btn-ghost" onClick={doMigrate}>
+                Move my posts
+              </button>
+              {migrateMsg ? <span className="muted"> {migrateMsg}</span> : null}
+            </div>
+          ) : migrateDone && migrateMsg ? (
+            <p className="muted">{migrateMsg}</p>
+          ) : null}
+        </div>
+
         <label className="handle-row">
           <span>Handle</span>
           <input
-            value={handle}
+            value={handleInput}
             placeholder="crumbcatcher"
             onChange={(e) => setHandleInput(e.target.value)}
-            onBlur={() => setHandle(handle)}
+            onBlur={commitHandle}
             maxLength={24}
           />
         </label>
@@ -75,6 +186,31 @@ export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
             <b>{stats.featuredVisited}</b>
             <span>featured</span>
           </div>
+        </div>
+
+        <div className="detail-block">
+          <h3>Leaderboard</h3>
+          {!signedIn ? (
+            <p className="muted">Sign in to see where you rank.</p>
+          ) : leaderboard.length === 0 ? (
+            <p className="muted">
+              No one on the board yet. Check in somewhere — you could be first.
+            </p>
+          ) : (
+            <ol className="leaderboard">
+              {leaderboard.map((u, i) => (
+                <li key={u.uid} className={u.uid === user?.uid ? 'me' : ''}>
+                  <span className="lb-rank">{i + 1}</span>
+                  <span className="lb-handle">
+                    @{u.handle || 'anon'}
+                    {u.uid === user?.uid ? ' (you)' : ''}
+                  </span>
+                  <span className="lb-level">{u.level}</span>
+                  <span className="lb-points">{u.points}</span>
+                </li>
+              ))}
+            </ol>
+          )}
         </div>
 
         <div className="detail-block">
@@ -125,8 +261,9 @@ export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
         </div>
 
         <p className="disclaimer">
-          Your card lives in this browser for now. Accounts, a shared feed, and
-          real perks are on the way.
+          {signedIn
+            ? 'Your points sync to the cloud from this device. Photos sync once Firebase Storage is switched on.'
+            : 'Your card lives in this browser until you sign in. Then it follows you across devices.'}
         </p>
       </aside>
     </>

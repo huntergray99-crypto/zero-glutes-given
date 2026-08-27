@@ -56,9 +56,31 @@ function loadBasemap() {
 function FitToSelection({ restaurant }) {
   const map = useMap();
   useEffect(() => {
-    if (restaurant) {
-      map.flyTo([restaurant.lat, restaurant.lng], 15, { duration: 0.6 });
-    }
+    if (!restaurant) return;
+    const { lat, lng } = restaurant;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+    // flyTo projects against the container size; if the map hasn't been sized
+    // yet (fast click right after load) that math yields NaN and Leaflet throws.
+    // Make sure there's a real size, and fall back to a plain setView.
+    const go = () => {
+      const size = map.getSize();
+      if (size.x === 0 || size.y === 0) {
+        map.invalidateSize({ animate: false });
+      }
+      try {
+        if (map.getSize().x > 0) {
+          map.flyTo([lat, lng], 15, { duration: 0.6 });
+        } else {
+          map.setView([lat, lng], 15, { animate: false });
+        }
+      } catch {
+        map.setView([lat, lng], 15, { animate: false });
+      }
+    };
+
+    const t = setTimeout(go, 60);
+    return () => clearTimeout(t);
   }, [restaurant, map]);
   return null;
 }
@@ -119,8 +141,18 @@ function FollowUser({ position }) {
   const centered = useRef(false);
   useEffect(() => {
     if (position && !centered.current) {
+      const { lat, lng } = position;
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
       centered.current = true;
-      map.flyTo([position.lat, position.lng], 14, { duration: 0.8 });
+      try {
+        if (map.getSize().x > 0) {
+          map.flyTo([lat, lng], 14, { duration: 0.8 });
+        } else {
+          map.setView([lat, lng], 14, { animate: false });
+        }
+      } catch {
+        map.setView([lat, lng], 14, { animate: false });
+      }
     }
     if (!position) centered.current = false;
   }, [position, map]);

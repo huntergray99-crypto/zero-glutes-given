@@ -22,11 +22,17 @@ function renderText(text, onTagClick) {
   });
 }
 
+function when(post) {
+  if (post.pending) return 'just now';
+  return new Date(post.date).toLocaleDateString();
+}
+
 export default function PostCard({
   post,
   restaurantName,
   onTagClick,
   onDelete,
+  canDelete = true,
   onOpenRestaurant,
 }) {
   return (
@@ -41,7 +47,7 @@ export default function PostCard({
             📍 {restaurantName}
           </button>
         ) : null}
-        <time>{new Date(post.date).toLocaleDateString()}</time>
+        <time>{when(post)}</time>
       </header>
 
       {post.photoId ? (
@@ -50,8 +56,8 @@ export default function PostCard({
 
       {post.text ? <p className="post-text">{renderText(post.text, onTagClick)}</p> : null}
 
-      {onDelete ? (
-        <button className="link-btn" onClick={() => onDelete(post.id)}>
+      {onDelete && canDelete ? (
+        <button className="link-btn" onClick={() => onDelete(post)}>
           delete
         </button>
       ) : null}

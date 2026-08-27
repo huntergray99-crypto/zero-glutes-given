@@ -7,6 +7,14 @@ import { deletePhoto } from './photos';
 
 const KEY = 'zgg.posts.v1';
 
+function localHandle() {
+  try {
+    return localStorage.getItem('zgg.handle') || getProfile().handle || 'anon';
+  } catch {
+    return 'anon';
+  }
+}
+
 export function parseHashtags(text) {
   const tags = new Set();
   for (const m of text.matchAll(/#([a-z0-9][a-z0-9_-]{0,30})/gi)) {
@@ -48,8 +56,9 @@ export function addPost({ restaurantId, text, photoId = null }) {
     text: trimmed,
     tags: parseHashtags(trimmed),
     photoId,
-    handle: getProfile().handle || 'anon',
+    handle: localHandle(),
     date: new Date().toISOString(),
+    cloud: false,
   };
   write([post, ...list]);
   return post;

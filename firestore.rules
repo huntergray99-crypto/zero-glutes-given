@@ -1,0 +1,40 @@
+rules_version = '2';
+
+// Zero Glutes Given — shared social layer.
+// Paste this into: Firebase console → Firestore Database → Rules → Publish.
+//
+// Model:
+//   posts/{id}  — public read; any signed-in user (Google or anonymous) can
+//                 create a post they own; only the author can edit/delete it.
+//   users/{uid} — public read (leaderboard + handles); a user may only write
+//                 their own card.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /posts/{postId} {
+      allow read: if true;
+
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.restaurantId is string
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.handle is string
+        && request.resource.data.tags is list;
+
+      allow update, delete: if request.auth != null
+        && resource.data.uid == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow read: if true;
+
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.points is number
+        && request.resource.data.handle is string
+        && request.resource.data.handle.size() <= 24;
+    }
+  }
+}

@@ -9,10 +9,10 @@ import {
 import { getReviews, addReview, deleteReview, summarize } from '../lib/reviews';
 import { getVisits, checkIn, undoLastCheckIn, POINTS } from '../lib/profile';
 import { haversineMiles, formatDistance, walkMinutes } from '../lib/geo';
+import { useCloud } from '../lib/CloudContext';
 import ReviewForm from './ReviewForm';
 import PostComposer from './PostComposer';
 import PostCard from './PostCard';
-import { getPostsFor, deletePost } from '../lib/posts';
 
 const VERIFY_RADIUS_MI = 0.2;
 
@@ -21,11 +21,10 @@ export default function RestaurantDetail({
   onClose,
   onReviewChange,
   onProfileChange,
-  onPostsChange,
   onTagClick,
-  postsVersion,
   userPosition,
 }) {
+  const { posts: allPosts, removePost, user } = useCloud();
   const [flash, setFlash] = useState(null);
   if (!restaurant) return null;
   const r = restaurant;
@@ -36,8 +35,7 @@ export default function RestaurantDetail({
   const visits = getVisits(r.id);
   const distMi = userPosition ? haversineMiles(userPosition, r) : null;
   const canVerify = distMi != null && distMi <= VERIFY_RADIUS_MI;
-  void postsVersion; // re-render trigger
-  const posts = getPostsFor(r.id);
+  const posts = allPosts.filter((p) => p.restaurantId === r.id);
 
   function handleAdd(payload) {
     addReview(r.id, payload);
@@ -212,17 +210,15 @@ export default function RestaurantDetail({
             Posts &amp; photos{' '}
             <span className="muted">— {posts.length || 'none yet'}</span>
           </h3>
-          <PostComposer restaurantId={r.id} onPosted={() => onPostsChange?.()} />
+          <PostComposer restaurantId={r.id} />
           <div className="post-list">
             {posts.map((p) => (
               <PostCard
                 key={p.id}
                 post={p}
                 onTagClick={onTagClick}
-                onDelete={async (id) => {
-                  await deletePost(id);
-                  onPostsChange?.();
-                }}
+                canDelete={!p.cloud || p.uid === user?.uid}
+                onDelete={(post) => removePost(post)}
               />
             ))}
           </div>

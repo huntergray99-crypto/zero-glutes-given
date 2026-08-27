@@ -3,6 +3,7 @@ import { restaurants as ALL } from './data/restaurants';
 import Filters from './components/Filters';
 import RestaurantList from './components/RestaurantList';
 import MapView from './components/MapView';
+import ErrorBoundary from './components/ErrorBoundary';
 import RestaurantDetail from './components/RestaurantDetail';
 import ProfilePanel from './components/ProfilePanel';
 import FeedPanel from './components/FeedPanel';
@@ -11,6 +12,7 @@ import { useGeolocation } from './lib/useGeolocation';
 import { haversineMiles, formatDistance, walkMinutes } from './lib/geo';
 import { nudgeLine } from './lib/nudges';
 import { computeStats } from './lib/profile';
+import { useCloud } from './lib/CloudContext';
 import './App.css';
 
 const INITIAL_FILTERS = {
@@ -46,14 +48,13 @@ export default function App() {
   const [feedTag, setFeedTag] = useState(undefined); // undefined = closed
   const [reviewsVersion, setReviewsVersion] = useState(0);
   const [profileVersion, setProfileVersion] = useState(0);
-  const [postsVersion, setPostsVersion] = useState(0);
   const [toast, setToast] = useState(null);
 
   const { position, status: locateStatus, toggle: toggleLocate } = useGeolocation();
+  const { signedIn, syncStats } = useCloud();
   const nudgeLog = useRef(loadNudgeLog());
 
   const bumpProfile = () => setProfileVersion((v) => v + 1);
-  const bumpPosts = () => setPostsVersion((v) => v + 1);
   const openFeed = (tag = null) => setFeedTag(tag);
 
   // Spots eligible before cuisine/search/price — used both for the list and to
@@ -154,6 +155,14 @@ export default function App() {
   void profileVersion;
   void reviewsVersion;
   const stats = computeStats();
+
+  // Push point/stat totals to this account's public card (drives the leaderboard
+  // and cross-device sync). Fires whenever the local totals move.
+  useEffect(() => {
+    if (!signedIn) return;
+    syncStats(stats);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signedIn, syncStats, stats.points, stats.totalCheckIns, stats.reviewsWritten]);
 
   function selectRestaurant(id) {
     setSelectedId(id);
@@ -264,14 +273,22 @@ export default function App() {
         </section>
 
         <section className="map-wrap">
-          <MapView
-            restaurants={filtered}
-            selectedId={selectedId}
-            onSelect={selectRestaurant}
-            userPosition={position}
-            locateStatus={locateStatus}
-            onLocate={toggleLocate}
-          />
+          <ErrorBoundary
+            fallback={
+              <div className="error-fallback error-fallback-map">
+                <p>The map hit a snag. The list still works.</p>
+              </div>
+            }
+          >
+            <MapView
+              restaurants={filtered}
+              selectedId={selectedId}
+              onSelect={selectRestaurant}
+              userPosition={position}
+              locateStatus={locateStatus}
+              onLocate={toggleLocate}
+            />
+          </ErrorBoundary>
           <div className="map-legend">
             <span>
               <i style={{ background: '#1b7f4b' }} /> Dedicated GF
@@ -298,9 +315,7 @@ export default function App() {
           onClose={() => setDetailId(null)}
           onReviewChange={() => setReviewsVersion((v) => v + 1)}
           onProfileChange={bumpProfile}
-          onPostsChange={bumpPosts}
           onTagClick={(tag) => openFeed(tag)}
-          postsVersion={postsVersion}
           userPosition={position}
         />
       ) : null}
@@ -321,8 +336,10 @@ export default function App() {
             setFeedTag(undefined);
             selectRestaurant(id);
           }}
-          version={postsVersion}
-          onChange={bumpPosts}
+          onOpenProfile={() => {
+            setFeedTag(undefined);
+            setShowProfile(true);
+          }}
         />
       ) : null}
 

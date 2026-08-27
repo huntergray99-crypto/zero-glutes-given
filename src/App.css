@@ -904,6 +904,147 @@
   gap: 4px;
 }
 
+/* ---------- account / auth ---------- */
+.account {
+  background: var(--card-2);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.account-in {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.account-in > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.account-in strong {
+  font-size: 14px;
+}
+
+.account-in .muted {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-in .btn {
+  flex: none;
+}
+
+.account-out p {
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.account-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.migrate {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.migrate p {
+  margin-bottom: 8px;
+}
+
+.rf-note-warn {
+  color: var(--warn);
+}
+
+/* ---------- leaderboard ---------- */
+.leaderboard {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  counter-reset: none;
+}
+
+.leaderboard li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.leaderboard li.me {
+  background: rgba(52, 199, 123, 0.14);
+}
+
+.lb-rank {
+  width: 20px;
+  text-align: right;
+  font-weight: 700;
+  color: var(--muted);
+  flex: none;
+}
+
+.lb-handle {
+  flex: 1;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lb-level {
+  font-size: 11px;
+  color: var(--muted);
+  flex: none;
+}
+
+.lb-points {
+  font-weight: 700;
+  color: var(--green-bright);
+  flex: none;
+  min-width: 34px;
+  text-align: right;
+}
+
+/* ---------- feed status line ---------- */
+.feed-status {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+/* ---------- error fallback ---------- */
+.error-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.error-fallback-map {
+  height: 100%;
+  background: var(--card-2);
+}
+
 /* ---------- posts / feed / photos ---------- */
 .composer {
   display: flex;

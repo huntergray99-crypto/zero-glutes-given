@@ -1,27 +1,31 @@
 import { useRef, useState } from 'react';
 import { savePhoto } from '../lib/photos';
-import { addPost } from '../lib/posts';
+import { useCloud } from '../lib/CloudContext';
 
 export default function PostComposer({ restaurantId, onPosted }) {
+  const { signedIn, isGuest, addPost } = useCloud();
   const [text, setText] = useState('');
   const [pending, setPending] = useState(false);
   const [file, setFile] = useState(null);
+  const [error, setError] = useState(null);
   const fileRef = useRef(null);
 
   async function submit(e) {
     e.preventDefault();
     if (!text.trim() && !file) return;
     setPending(true);
+    setError(null);
     try {
       let photoId = null;
       if (file) photoId = await savePhoto(restaurantId, file);
-      addPost({ restaurantId, text, photoId });
+      await addPost({ restaurantId, text, photoId });
       setText('');
       setFile(null);
       if (fileRef.current) fileRef.current.value = '';
       onPosted?.();
     } catch (err) {
       console.error(err);
+      setError('Could not post. Try again.');
     } finally {
       setPending(false);
     }
@@ -50,7 +54,14 @@ export default function PostComposer({ restaurantId, onPosted }) {
           {pending ? 'Posting…' : 'Post'}
         </button>
       </div>
-      <p className="rf-note">Saved on this device for now — a shared feed is coming.</p>
+      {error ? <p className="rf-note rf-note-warn">{error}</p> : null}
+      <p className="rf-note">
+        {signedIn
+          ? isGuest
+            ? 'Posting to the shared feed as a guest. Photos sync once Storage is on.'
+            : 'Posting to the shared feed. Photos sync once Storage is on.'
+          : 'Saved on this device. Sign in on your card to post to the shared feed.'}
+      </p>
     </form>
   );
 }

@@ -1,31 +1,30 @@
 import { useMemo, useState } from 'react';
 import { restaurants } from '../data/restaurants';
-import { getAllPosts, deletePost, allHashtags } from '../lib/posts';
+import { useCloud } from '../lib/CloudContext';
 import PostCard from './PostCard';
 
 const nameById = Object.fromEntries(restaurants.map((r) => [r.id, r.name]));
 
-export default function FeedPanel({
-  onClose,
-  onOpenRestaurant,
-  version,
-  onChange,
-  initialTag = null,
-}) {
+export default function FeedPanel({ onClose, onOpenRestaurant, onOpenProfile, initialTag = null }) {
+  const { posts, signedIn, isGuest, user, removePost, postsError } = useCloud();
   const [tag, setTag] = useState(initialTag);
+  const [busy, setBusy] = useState(null);
 
-  const posts = useMemo(() => {
-    const all = getAllPosts();
-    return tag ? all.filter((p) => p.tags.includes(tag)) : all;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tag, version]);
+  const tags = useMemo(() => {
+    const counts = {};
+    for (const p of posts) for (const t of p.tags || []) counts[t] = (counts[t] || 0) + 1;
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }, [posts]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const tags = useMemo(() => allHashtags(), [version]);
+  const shown = tag ? posts.filter((p) => (p.tags || []).includes(tag)) : posts;
 
-  async function handleDelete(id) {
-    await deletePost(id);
-    onChange?.();
+  async function handleDelete(post) {
+    setBusy(post.id);
+    try {
+      await removePost(post);
+    } finally {
+      setBusy(null);
+    }
   }
 
   return (
@@ -36,6 +35,25 @@ export default function FeedPanel({
           ×
         </button>
         <h2>Feed</h2>
+
+        <p className="feed-status">
+          {signedIn
+            ? isGuest
+              ? 'Shared feed · you’re posting as a guest'
+              : 'Shared feed · live'
+            : 'On-device feed. '}
+          {!signedIn ? (
+            <button className="link-btn" onClick={onOpenProfile}>
+              Sign in to join the shared feed
+            </button>
+          ) : null}
+        </p>
+
+        {postsError ? (
+          <p className="rf-note rf-note-warn">
+            Feed didn’t load — the database rules may still need to be published.
+          </p>
+        ) : null}
 
         {tags.length ? (
           <div className="tag-bar">
@@ -58,7 +76,7 @@ export default function FeedPanel({
           </div>
         ) : null}
 
-        {posts.length === 0 ? (
+        {shown.length === 0 ? (
           <p className="muted">
             {tag
               ? `No posts tagged #${tag} yet.`
@@ -66,13 +84,14 @@ export default function FeedPanel({
           </p>
         ) : (
           <div className="feed-list">
-            {posts.map((p) => (
+            {shown.map((p) => (
               <PostCard
                 key={p.id}
                 post={p}
                 restaurantName={nameById[p.restaurantId]}
                 onTagClick={setTag}
-                onDelete={handleDelete}
+                onDelete={busy === p.id ? undefined : handleDelete}
+                canDelete={!p.cloud || p.uid === user?.uid}
                 onOpenRestaurant={onOpenRestaurant}
               />
             ))}
@@ -80,8 +99,9 @@ export default function FeedPanel({
         )}
 
         <p className="disclaimer">
-          Posts live on this device for now. When accounts land, your posts become
-          the shared community feed.
+          {signedIn
+            ? 'Photos still live on the posting device until Firebase Storage is switched on.'
+            : 'Posts live on this device for now. Sign in to post to the shared community feed.'}
         </p>
       </aside>
     </>
