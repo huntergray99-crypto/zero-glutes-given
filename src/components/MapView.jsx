@@ -23,8 +23,9 @@ function KeepSized() {
     const fix = () => map.invalidateSize({ animate: false });
     const container = map.getContainer();
 
-    // a few staggered passes catch the initial flex layout settling
-    const timers = [0, 60, 200, 500].map((ms) => setTimeout(fix, ms));
+    // Recompute a few times right after mount while the flex layout settles
+    // (and, in dev, while the bundled CSS is injected after first paint).
+    const timers = [0, 80, 200, 400, 800, 1400].map((ms) => setTimeout(fix, ms));
 
     const ro = new ResizeObserver(fix);
     ro.observe(container);
