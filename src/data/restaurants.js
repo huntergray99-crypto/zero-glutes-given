@@ -29,6 +29,7 @@ export const CUISINES = [
 export const restaurants = [
   {
     id: 'ghostfish-brewing',
+    featured: true,
     name: 'Ghostfish Brewing Company',
     neighborhood: 'SODO',
     address: '2942 1st Ave S, Seattle, WA 98134',
@@ -49,6 +50,7 @@ export const restaurants = [
   },
   {
     id: 'capitol-cider',
+    featured: true,
     name: 'Capitol Cider',
     neighborhood: 'Capitol Hill',
     address: '818 E Pike St, Seattle, WA 98122',
@@ -68,6 +70,7 @@ export const restaurants = [
   },
   {
     id: 'flying-apron',
+    featured: true,
     name: 'Flying Apron Bakery',
     neighborhood: 'Fremont',
     address: '3510 Fremont Ave N, Seattle, WA 98103',
@@ -87,6 +90,7 @@ export const restaurants = [
   },
   {
     id: 'nuflours',
+    featured: true,
     name: 'Nuflours Bakery',
     neighborhood: 'Capitol Hill',
     address: '518 15th Ave E, Seattle, WA 98112',
@@ -106,6 +110,7 @@ export const restaurants = [
   },
   {
     id: 'razzis-pizzeria',
+    featured: true,
     name: "Razzi's Pizzeria",
     neighborhood: 'Greenwood',
     address: '8523 Greenwood Ave N, Seattle, WA 98103',

@@ -1,9 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { restaurants as ALL } from './data/restaurants';
 import Filters from './components/Filters';
 import RestaurantList from './components/RestaurantList';
 import MapView from './components/MapView';
 import RestaurantDetail from './components/RestaurantDetail';
+import ProfilePanel from './components/ProfilePanel';
+import Toast from './components/Toast';
+import { useGeolocation } from './lib/useGeolocation';
+import { haversineMiles, formatDistance, walkMinutes } from './lib/geo';
+import { nudgeLine } from './lib/nudges';
+import { computeStats } from './lib/profile';
 import './App.css';
 
 const INITIAL_FILTERS = {
@@ -14,18 +20,37 @@ const INITIAL_FILTERS = {
   maxPrice: 4,
 };
 
+const NUDGE_RADIUS_MI = 0.3;
+const NUDGE_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour per restaurant
+
+function loadNudgeLog() {
+  try {
+    return JSON.parse(localStorage.getItem('zgg.nudges') || '{}');
+  } catch {
+    return {};
+  }
+}
+
 export default function App() {
   const [filters, setFilters] = useState(INITIAL_FILTERS);
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState(null);
   const [detailId, setDetailId] = useState(null);
-  const [mobileView, setMobileView] = useState('list'); // 'list' | 'map'
+  const [mobileView, setMobileView] = useState('list');
   const [showFilters, setShowFilters] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [reviewsVersion, setReviewsVersion] = useState(0);
+  const [profileVersion, setProfileVersion] = useState(0);
+  const [toast, setToast] = useState(null);
+
+  const { position, status: locateStatus, toggle: toggleLocate } = useGeolocation();
+  const nudgeLog = useRef(loadNudgeLog());
+
+  const bumpProfile = () => setProfileVersion((v) => v + 1);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return ALL.filter((r) => {
+    const list = ALL.filter((r) => {
       if (filters.safety.size && !filters.safety.has(r.safetyLevel)) return false;
       if (filters.dedicatedFryer && !r.dedicatedFryer) return false;
       if (filters.celiacVerified && !r.celiacVerified) return false;
@@ -43,13 +68,67 @@ export default function App() {
         return false;
       return true;
     });
-  }, [filters, query]);
+    if (position) {
+      list.sort(
+        (a, b) => haversineMiles(position, a) - haversineMiles(position, b)
+      );
+    }
+    return list;
+  }, [filters, query, position]);
+
+  // Proximity nudge: when a location fix comes in, nag about the nearest spot
+  // you haven't been nagged about in the last hour.
+  useEffect(() => {
+    if (!position) return;
+    const now = Date.now();
+    let best = null;
+    for (const r of ALL) {
+      const d = haversineMiles(position, r);
+      if (d > NUDGE_RADIUS_MI) continue;
+      const last = nudgeLog.current[r.id] || 0;
+      if (now - last < NUDGE_COOLDOWN_MS) continue;
+      if (!best || d < best.d) best = { r, d };
+    }
+    if (!best) return;
+    nudgeLog.current[best.r.id] = now;
+    try {
+      localStorage.setItem('zgg.nudges', JSON.stringify(nudgeLog.current));
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react/set-state-in-effect -- reacting to a geolocation fix (external system)
+    setToast({
+      kind: 'nudge',
+      message: nudgeLine(
+        best.r.name,
+        formatDistance(best.d),
+        walkMinutes(best.d)
+      ),
+      action: {
+        label: 'Show me',
+        onClick: () => {
+          setSelectedId(best.r.id);
+          setDetailId(best.r.id);
+        },
+      },
+      duration: 11000,
+    });
+  }, [position]);
 
   const detailRestaurant = ALL.find((r) => r.id === detailId) || null;
+  // recomputed each render; cheap, and profile/review bumps force the render
+  void profileVersion;
+  void reviewsVersion;
+  const stats = computeStats();
 
   function selectRestaurant(id) {
     setSelectedId(id);
     setDetailId(id);
+  }
+
+  function openFromProfile(id) {
+    setShowProfile(false);
+    selectRestaurant(id);
   }
 
   return (
@@ -83,6 +162,7 @@ export default function App() {
             <p>Celiac-safe dining in Seattle</p>
           </div>
         </div>
+
         <input
           className="search"
           type="search"
@@ -90,6 +170,15 @@ export default function App() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
+
+        <button
+          className="points-pill"
+          onClick={() => setShowProfile(true)}
+          title="Your card"
+        >
+          <strong>{stats.points}</strong> pts
+          <span className="points-pill-level">{stats.level.name}</span>
+        </button>
       </header>
 
       <div className="mobile-toggle">
@@ -129,6 +218,8 @@ export default function App() {
               selectedId={selectedId}
               onSelect={selectRestaurant}
               reviewsVersion={reviewsVersion}
+              profileVersion={profileVersion}
+              userPosition={position}
             />
           </div>
         </section>
@@ -138,6 +229,9 @@ export default function App() {
             restaurants={filtered}
             selectedId={selectedId}
             onSelect={selectRestaurant}
+            userPosition={position}
+            locateStatus={locateStatus}
+            onLocate={toggleLocate}
           />
           <div className="map-legend">
             <span>
@@ -158,8 +252,20 @@ export default function App() {
           restaurant={detailRestaurant}
           onClose={() => setDetailId(null)}
           onReviewChange={() => setReviewsVersion((v) => v + 1)}
+          onProfileChange={bumpProfile}
+          userPosition={position}
         />
       ) : null}
+
+      {showProfile ? (
+        <ProfilePanel
+          onClose={() => setShowProfile(false)}
+          onOpenRestaurant={openFromProfile}
+          version={profileVersion + reviewsVersion}
+        />
+      ) : null}
+
+      <Toast toast={toast} onDismiss={() => setToast(null)} />
     </div>
   );
 }

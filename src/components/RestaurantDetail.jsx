@@ -1,22 +1,59 @@
+import { useState } from 'react';
 import { SAFETY_META, priceLabel, mapsUrl, verifiedLabel } from '../lib/format';
 import { getReviews, addReview, deleteReview, summarize } from '../lib/reviews';
+import { getVisits, checkIn, undoLastCheckIn, POINTS } from '../lib/profile';
+import { haversineMiles, formatDistance, walkMinutes } from '../lib/geo';
 import ReviewForm from './ReviewForm';
 
-export default function RestaurantDetail({ restaurant, onClose, onReviewChange }) {
+const VERIFY_RADIUS_MI = 0.2;
+
+export default function RestaurantDetail({
+  restaurant,
+  onClose,
+  onReviewChange,
+  onProfileChange,
+  userPosition,
+}) {
+  const [flash, setFlash] = useState(null);
   if (!restaurant) return null;
   const r = restaurant;
   const meta = SAFETY_META[r.safetyLevel];
   const reviews = getReviews(r.id);
   const stats = summarize(reviews);
 
+  const visits = getVisits(r.id);
+  const distMi = userPosition ? haversineMiles(userPosition, r) : null;
+  const canVerify = distMi != null && distMi <= VERIFY_RADIUS_MI;
+
   function handleAdd(payload) {
     addReview(r.id, payload);
     onReviewChange();
+    onProfileChange?.();
   }
 
   function handleDelete(id) {
     deleteReview(r.id, id);
     onReviewChange();
+    onProfileChange?.();
+  }
+
+  function handleCheckIn() {
+    const { isFirst } = checkIn(r.id, { verified: canVerify });
+    let earned = canVerify ? POINTS.verifiedCheckIn : POINTS.checkIn;
+    if (isFirst) earned += POINTS.discovery;
+    if (r.featured) earned += POINTS.featuredBonus;
+    setFlash(
+      `Checked in${canVerify ? ' (GPS confirmed)' : ''}. +${earned} points${
+        isFirst ? ' — first visit!' : ''
+      }`
+    );
+    onProfileChange?.();
+  }
+
+  function handleUndo() {
+    undoLastCheckIn(r.id);
+    setFlash(null);
+    onProfileChange?.();
   }
 
   return (
@@ -28,13 +65,43 @@ export default function RestaurantDetail({ restaurant, onClose, onReviewChange }
         </button>
 
         <div className="detail-head" style={{ borderColor: meta.color }}>
-          <span className="badge" style={{ background: meta.color }}>
-            {meta.short}
+          <span className="badge-row">
+            <span className="badge" style={{ background: meta.color }}>
+              {meta.short}
+            </span>
+            {r.featured ? <span className="badge badge-featured">★ Featured</span> : null}
           </span>
           <h2>{r.name}</h2>
           <p className="detail-sub">
             {r.neighborhood} · {r.cuisine.join(', ')} · {priceLabel(r.priceLevel)}
+            {distMi != null ? ` · ${formatDistance(distMi)} away` : ''}
           </p>
+        </div>
+
+        <div className="checkin">
+          <div className="checkin-main">
+            <button className="btn" onClick={handleCheckIn}>
+              Check in here
+            </button>
+            <span className="checkin-count">
+              {visits.length === 0
+                ? 'Never checked in'
+                : `${visits.length}× visit${visits.length > 1 ? 's' : ''}` +
+                  ` · last ${new Date(visits.at(-1).date).toLocaleDateString()}`}
+            </span>
+          </div>
+          {distMi != null && !canVerify ? (
+            <p className="muted">
+              You're {formatDistance(distMi)} out (~{walkMinutes(distMi)} min
+              walk). Check in within {VERIFY_RADIUS_MI * 5280} ft for the GPS
+              bonus.
+            </p>
+          ) : null}
+          {flash ? (
+            <p className="checkin-flash">
+              {flash} <button className="link-btn" onClick={handleUndo}>undo</button>
+            </p>
+          ) : null}
         </div>
 
         <p className="detail-blurb">{meta.blurb}</p>

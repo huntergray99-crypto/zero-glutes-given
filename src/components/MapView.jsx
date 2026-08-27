@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   MapContainer,
   TileLayer,
   CircleMarker,
+  Circle,
   Tooltip,
   useMap,
 } from 'react-leaflet';
@@ -112,7 +113,28 @@ function BasemapToggle({ value, onChange }) {
   );
 }
 
-export default function MapView({ restaurants, selectedId, onSelect }) {
+// Recenter once when a fresh location fix first arrives.
+function FollowUser({ position }) {
+  const map = useMap();
+  const centered = useRef(false);
+  useEffect(() => {
+    if (position && !centered.current) {
+      centered.current = true;
+      map.flyTo([position.lat, position.lng], 14, { duration: 0.8 });
+    }
+    if (!position) centered.current = false;
+  }, [position, map]);
+  return null;
+}
+
+export default function MapView({
+  restaurants,
+  selectedId,
+  onSelect,
+  userPosition,
+  locateStatus,
+  onLocate,
+}) {
   const selected = restaurants.find((r) => r.id === selectedId) || null;
   const [basemap, setBasemap] = useState(loadBasemap);
 
@@ -127,9 +149,34 @@ export default function MapView({ restaurants, selectedId, onSelect }) {
 
   const cfg = BASEMAPS[basemap];
 
+  const locateTitle =
+    locateStatus === 'denied'
+      ? 'Location permission denied — enable it in your browser settings'
+      : locateStatus === 'active'
+        ? 'Stop showing my location'
+        : 'Show my location';
+
   return (
     <>
-      <BasemapToggle value={basemap} onChange={chooseBasemap} />
+      <div className="map-controls">
+        <BasemapToggle value={basemap} onChange={chooseBasemap} />
+        <button
+          type="button"
+          className={`locate-btn ${locateStatus === 'active' ? 'on' : ''} ${
+            locateStatus === 'locating' ? 'busy' : ''
+          }`}
+          onClick={onLocate}
+          title={locateTitle}
+          aria-label={locateTitle}
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+            <path
+              fill="currentColor"
+              d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm9 3h-2.06A7 7 0 0 0 13 5.06V3h-2v2.06A7 7 0 0 0 5.06 11H3v2h2.06A7 7 0 0 0 11 18.94V21h2v-2.06A7 7 0 0 0 18.94 13H21v-2Zm-9 6a5 5 0 1 1 0-10 5 5 0 0 1 0 10Z"
+            />
+          </svg>
+        </button>
+      </div>
       <MapContainer
         center={SEATTLE_CENTER}
         zoom={12}
@@ -155,6 +202,34 @@ export default function MapView({ restaurants, selectedId, onSelect }) {
 
         <KeepSized />
         <FitToSelection restaurant={selected} />
+        <FollowUser position={userPosition} />
+
+        {userPosition ? (
+          <>
+            <CircleMarker
+              center={[userPosition.lat, userPosition.lng]}
+              radius={7}
+              pathOptions={{
+                color: '#fff',
+                weight: 2.5,
+                fillColor: '#2f8fff',
+                fillOpacity: 1,
+              }}
+            />
+            {userPosition.accuracy ? (
+              <Circle
+                center={[userPosition.lat, userPosition.lng]}
+                radius={userPosition.accuracy}
+                pathOptions={{
+                  color: '#2f8fff',
+                  weight: 1,
+                  fillColor: '#2f8fff',
+                  fillOpacity: 0.1,
+                }}
+              />
+            ) : null}
+          </>
+        ) : null}
 
         {restaurants.map((r) => {
           const isSelected = r.id === selectedId;
@@ -162,10 +237,10 @@ export default function MapView({ restaurants, selectedId, onSelect }) {
             <CircleMarker
               key={r.id}
               center={[r.lat, r.lng]}
-              radius={isSelected ? 11 : 7}
+              radius={isSelected ? 11 : r.featured ? 8 : 7}
               pathOptions={{
-                color: '#fff',
-                weight: isSelected ? 3 : 1.5,
+                color: r.featured ? '#f5c518' : '#fff',
+                weight: isSelected ? 3 : r.featured ? 2.5 : 1.5,
                 fillColor: SAFETY_META[r.safetyLevel].color,
                 fillOpacity: 1,
               }}
@@ -173,6 +248,7 @@ export default function MapView({ restaurants, selectedId, onSelect }) {
             >
               <Tooltip direction="top" offset={[0, -6]}>
                 <strong>{r.name}</strong>
+                {r.featured ? ' ★' : ''}
                 <br />
                 {SAFETY_META[r.safetyLevel].short}
               </Tooltip>

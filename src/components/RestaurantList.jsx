@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { SAFETY_META, priceLabel } from '../lib/format';
 import { getReviews, summarize } from '../lib/reviews';
+import { getVisits } from '../lib/profile';
+import { haversineMiles, formatDistance } from '../lib/geo';
 
 function Stars({ value }) {
   const full = Math.round(value);
@@ -12,7 +14,14 @@ function Stars({ value }) {
   );
 }
 
-export default function RestaurantList({ restaurants, selectedId, onSelect, reviewsVersion }) {
+export default function RestaurantList({
+  restaurants,
+  selectedId,
+  onSelect,
+  reviewsVersion,
+  profileVersion,
+  userPosition,
+}) {
   const refs = useRef({});
 
   useEffect(() => {
@@ -30,10 +39,12 @@ export default function RestaurantList({ restaurants, selectedId, onSelect, revi
   }
 
   return (
-    <ul className="rlist" data-rv={reviewsVersion}>
+    <ul className="rlist" data-rv={`${reviewsVersion}-${profileVersion}`}>
       {restaurants.map((r) => {
         const meta = SAFETY_META[r.safetyLevel];
         const stats = summarize(getReviews(r.id));
+        const visitCount = getVisits(r.id).length;
+        const distMi = userPosition ? haversineMiles(userPosition, r) : null;
         return (
           <li key={r.id}>
             <button
@@ -44,11 +55,15 @@ export default function RestaurantList({ restaurants, selectedId, onSelect, revi
               <span className="rcard-bar" style={{ background: meta.color }} />
               <span className="rcard-body">
                 <span className="rcard-top">
-                  <span className="rcard-name">{r.name}</span>
+                  <span className="rcard-name">
+                    {r.featured ? <span className="star">★ </span> : null}
+                    {r.name}
+                  </span>
                   <span className="rcard-price">{priceLabel(r.priceLevel)}</span>
                 </span>
                 <span className="rcard-meta">
                   {r.neighborhood} · {r.cuisine.join(', ')}
+                  {distMi != null ? ` · ${formatDistance(distMi)}` : ''}
                 </span>
                 <span className="rcard-tags">
                   <span className="tag" style={{ borderColor: meta.color, color: meta.color }}>
@@ -56,6 +71,9 @@ export default function RestaurantList({ restaurants, selectedId, onSelect, revi
                   </span>
                   {r.dedicatedFryer ? <span className="tag">Dedicated fryer</span> : null}
                   {r.celiacVerified ? <span className="tag">Celiac-verified</span> : null}
+                  {visitCount > 0 ? (
+                    <span className="tag tag-visit">✓ {visitCount}× visited</span>
+                  ) : null}
                 </span>
                 {stats ? (
                   <span className="rcard-reviews">
