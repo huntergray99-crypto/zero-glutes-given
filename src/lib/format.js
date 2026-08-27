@@ -65,6 +65,16 @@ export function directionsProvider() {
   return isApplePlatform() ? 'Apple Maps' : 'Google Maps';
 }
 
+// Rough "time until" label for the check-in cooldown: "18h", "45m", "soon".
+export function untilLabel(epochMs, now = Date.now()) {
+  const ms = epochMs - now;
+  if (ms <= 0) return 'now';
+  const hrs = Math.floor(ms / 3_600_000);
+  if (hrs >= 1) return `${hrs}h`;
+  const mins = Math.max(1, Math.round(ms / 60_000));
+  return `${mins}m`;
+}
+
 export function verifiedLabel(iso) {
   if (!iso) return null;
   const [y, m] = iso.split('-');

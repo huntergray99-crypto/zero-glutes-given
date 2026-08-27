@@ -19,6 +19,9 @@ export const POINTS = {
   review: 15,
 };
 
+// One check-in per place per 24h — keeps the punch card and points honest.
+export const CHECKIN_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+
 export const LEVELS = [
   { name: 'Crumb', min: 0 },
   { name: 'Nibbler', min: 100 },
@@ -60,14 +63,28 @@ export function getVisits(restaurantId) {
   return read().checkIns[restaurantId] ?? [];
 }
 
+// { allowed, nextAllowedAt } — nextAllowedAt is an epoch ms once on cooldown.
+export function checkInStatus(restaurantId, now = Date.now()) {
+  const list = read().checkIns[restaurantId] ?? [];
+  if (!list.length) return { allowed: true, nextAllowedAt: null };
+  const last = new Date(list.at(-1).date).getTime();
+  const nextAllowedAt = last + CHECKIN_COOLDOWN_MS;
+  return { allowed: now >= nextAllowedAt, nextAllowedAt };
+}
+
 export function checkIn(restaurantId, { verified = false } = {}) {
+  const now = Date.now();
+  const status = checkInStatus(restaurantId, now);
+  if (!status.allowed) {
+    return { ok: false, nextAllowedAt: status.nextAllowedAt };
+  }
   const data = read();
   const list = data.checkIns[restaurantId] ?? [];
   const isFirst = list.length === 0;
-  list.push({ date: new Date().toISOString(), verified });
+  list.push({ date: new Date(now).toISOString(), verified });
   data.checkIns[restaurantId] = list;
   write(data);
-  return { isFirst, count: list.length };
+  return { ok: true, isFirst, count: list.length };
 }
 
 export function undoLastCheckIn(restaurantId) {
@@ -77,6 +94,35 @@ export function undoLastCheckIn(restaurantId) {
   if (list.length) data.checkIns[restaurantId] = list;
   else delete data.checkIns[restaurantId];
   write(data);
+}
+
+// Historical cleanup: collapse multiple check-ins at one spot within any 24h
+// window down to the first (preferring a GPS-verified one). Runs once.
+export function dedupeCheckIns() {
+  const data = read();
+  let changed = false;
+  for (const [id, list] of Object.entries(data.checkIns)) {
+    const sorted = [...list].sort((a, b) => a.date.localeCompare(b.date));
+    const kept = [];
+    for (const c of sorted) {
+      const prev = kept[kept.length - 1];
+      if (
+        prev &&
+        new Date(c.date).getTime() - new Date(prev.date).getTime() <
+          CHECKIN_COOLDOWN_MS
+      ) {
+        if (c.verified && !prev.verified) kept[kept.length - 1] = { ...prev, verified: true };
+        continue;
+      }
+      kept.push(c);
+    }
+    if (kept.length !== list.length) {
+      data.checkIns[id] = kept;
+      changed = true;
+    }
+  }
+  if (changed) write(data);
+  return changed;
 }
 
 // ---- derived stats ----

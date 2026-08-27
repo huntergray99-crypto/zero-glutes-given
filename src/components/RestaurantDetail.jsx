@@ -5,9 +5,16 @@ import {
   directionsUrl,
   directionsProvider,
   verifiedLabel,
+  untilLabel,
 } from '../lib/format';
 import { getReviews, addReview, deleteReview, summarize } from '../lib/reviews';
-import { getVisits, checkIn, undoLastCheckIn, POINTS } from '../lib/profile';
+import {
+  getVisits,
+  checkIn,
+  checkInStatus,
+  undoLastCheckIn,
+  POINTS,
+} from '../lib/profile';
 import { haversineMiles, formatDistance, walkMinutes } from '../lib/geo';
 import { useCloud } from '../lib/CloudContext';
 import ReviewForm from './ReviewForm';
@@ -37,6 +44,10 @@ export default function RestaurantDetail({
   const canVerify = distMi != null && distMi <= VERIFY_RADIUS_MI;
   const posts = allPosts.filter((p) => p.restaurantId === r.id);
 
+  // recompute on flash so the button re-locks right after a check-in
+  void flash;
+  const checkin = checkInStatus(r.id);
+
   function handleAdd(payload) {
     addReview(r.id, payload);
     onReviewChange();
@@ -50,13 +61,21 @@ export default function RestaurantDetail({
   }
 
   function handleCheckIn() {
-    const { isFirst } = checkIn(r.id, { verified: canVerify });
+    const res = checkIn(r.id, { verified: canVerify });
+    if (!res.ok) {
+      setFlash(
+        `You already checked in here today — one per spot per day. Come back in ${untilLabel(
+          res.nextAllowedAt
+        )}.`
+      );
+      return;
+    }
     let earned = canVerify ? POINTS.verifiedCheckIn : POINTS.checkIn;
-    if (isFirst) earned += POINTS.discovery;
+    if (res.isFirst) earned += POINTS.discovery;
     if (r.featured) earned += POINTS.featuredBonus;
     setFlash(
       `Checked in${canVerify ? ' (GPS confirmed)' : ''}. +${earned} points${
-        isFirst ? ' — first visit!' : ''
+        res.isFirst ? ' — first visit!' : ''
       }`
     );
     onProfileChange?.();
@@ -92,8 +111,14 @@ export default function RestaurantDetail({
 
         <div className="checkin">
           <div className="checkin-main">
-            <button className="btn" onClick={handleCheckIn}>
-              Check in here
+            <button
+              className="btn"
+              onClick={handleCheckIn}
+              disabled={!checkin.allowed}
+            >
+              {checkin.allowed
+                ? 'Check in here'
+                : `Checked in today · again in ${untilLabel(checkin.nextAllowedAt)}`}
             </button>
             <span className="checkin-count">
               {visits.length === 0

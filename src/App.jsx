@@ -4,6 +4,7 @@ import Filters from './components/Filters';
 import RestaurantList from './components/RestaurantList';
 import MapView from './components/MapView';
 import ErrorBoundary from './components/ErrorBoundary';
+import UpdatePrompt from './components/UpdatePrompt';
 import RestaurantDetail from './components/RestaurantDetail';
 import ProfilePanel from './components/ProfilePanel';
 import FeedPanel from './components/FeedPanel';
@@ -11,9 +12,12 @@ import Toast from './components/Toast';
 import { useGeolocation } from './lib/useGeolocation';
 import { haversineMiles, formatDistance, walkMinutes } from './lib/geo';
 import { nudgeLine } from './lib/nudges';
-import { computeStats } from './lib/profile';
+import { computeStats, dedupeCheckIns } from './lib/profile';
 import { useCloud } from './lib/CloudContext';
 import './App.css';
+
+// one-time cleanup of pre-cooldown check-in spam
+dedupeCheckIns();
 
 const INITIAL_FILTERS = {
   safety: new Set(),
@@ -344,6 +348,7 @@ export default function App() {
       ) : null}
 
       <Toast toast={toast} onDismiss={() => setToast(null)} />
+      <UpdatePrompt />
     </div>
   );
 }
