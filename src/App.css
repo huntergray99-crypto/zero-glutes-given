@@ -669,6 +669,17 @@
   border-top: 1px solid var(--line);
 }
 
+/* ---------- feed button ---------- */
+.feed-btn {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 /* ---------- points pill ---------- */
 .points-pill {
   display: flex;
@@ -891,6 +902,138 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+/* ---------- posts / feed / photos ---------- */
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--card-2);
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.composer textarea {
+  font: inherit;
+  font-size: 13px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  resize: vertical;
+}
+
+.composer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.composer-photo {
+  font-size: 12.5px;
+  color: var(--green-bright);
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.composer-photo input {
+  display: none;
+}
+
+.post-list,
+.feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.post {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--card);
+}
+
+.post-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.post-handle {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.post-place {
+  border: none;
+  background: var(--card-2);
+  color: var(--green-bright);
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: 11.5px;
+}
+
+.post-head time {
+  margin-left: auto;
+}
+
+.post-photo {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  display: block;
+  background: var(--card-2);
+}
+
+.post-text {
+  font-size: 13.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.hashtag {
+  border: none;
+  background: none;
+  color: var(--green-bright);
+  font: inherit;
+  font-size: inherit;
+  padding: 0;
+}
+
+.hashtag:hover {
+  text-decoration: underline;
+}
+
+.photo-thumb {
+  width: 100%;
+  border-radius: 8px;
+  display: block;
+}
+
+.photo-thumb-empty {
+  aspect-ratio: 4 / 3;
+  background: var(--card-2);
+}
+
+.tag-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
 }
 
 /* ---------- toast ---------- */

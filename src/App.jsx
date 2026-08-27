@@ -5,6 +5,7 @@ import RestaurantList from './components/RestaurantList';
 import MapView from './components/MapView';
 import RestaurantDetail from './components/RestaurantDetail';
 import ProfilePanel from './components/ProfilePanel';
+import FeedPanel from './components/FeedPanel';
 import Toast from './components/Toast';
 import { useGeolocation } from './lib/useGeolocation';
 import { haversineMiles, formatDistance, walkMinutes } from './lib/geo';
@@ -42,14 +43,18 @@ export default function App() {
   const [mobileView, setMobileView] = useState('list');
   const [showFilters, setShowFilters] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [feedTag, setFeedTag] = useState(undefined); // undefined = closed
   const [reviewsVersion, setReviewsVersion] = useState(0);
   const [profileVersion, setProfileVersion] = useState(0);
+  const [postsVersion, setPostsVersion] = useState(0);
   const [toast, setToast] = useState(null);
 
   const { position, status: locateStatus, toggle: toggleLocate } = useGeolocation();
   const nudgeLog = useRef(loadNudgeLog());
 
   const bumpProfile = () => setProfileVersion((v) => v + 1);
+  const bumpPosts = () => setPostsVersion((v) => v + 1);
+  const openFeed = (tag = null) => setFeedTag(tag);
 
   // Spots eligible before cuisine/search/price — used both for the list and to
   // count how many spots each cuisine chip would show.
@@ -200,6 +205,10 @@ export default function App() {
           onChange={(e) => setQuery(e.target.value)}
         />
 
+        <button className="feed-btn" onClick={() => openFeed(null)} title="Community feed">
+          Feed
+        </button>
+
         <button
           className="points-pill"
           onClick={() => setShowProfile(true)}
@@ -289,6 +298,9 @@ export default function App() {
           onClose={() => setDetailId(null)}
           onReviewChange={() => setReviewsVersion((v) => v + 1)}
           onProfileChange={bumpProfile}
+          onPostsChange={bumpPosts}
+          onTagClick={(tag) => openFeed(tag)}
+          postsVersion={postsVersion}
           userPosition={position}
         />
       ) : null}
@@ -298,6 +310,19 @@ export default function App() {
           onClose={() => setShowProfile(false)}
           onOpenRestaurant={openFromProfile}
           version={profileVersion + reviewsVersion}
+        />
+      ) : null}
+
+      {feedTag !== undefined ? (
+        <FeedPanel
+          initialTag={feedTag}
+          onClose={() => setFeedTag(undefined)}
+          onOpenRestaurant={(id) => {
+            setFeedTag(undefined);
+            selectRestaurant(id);
+          }}
+          version={postsVersion}
+          onChange={bumpPosts}
         />
       ) : null}
 
