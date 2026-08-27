@@ -18,7 +18,10 @@ const INITIAL_FILTERS = {
   dedicatedFryer: false,
   celiacVerified: false,
   maxPrice: 4,
+  showHonorable: false,
 };
+
+const CELIAC_COUNT = ALL.filter((r) => !r.honorableMention).length;
 
 const NUDGE_RADIUS_MI = 0.3;
 const NUDGE_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour per restaurant
@@ -48,12 +51,30 @@ export default function App() {
 
   const bumpProfile = () => setProfileVersion((v) => v + 1);
 
+  // Spots eligible before cuisine/search/price — used both for the list and to
+  // count how many spots each cuisine chip would show.
+  const eligible = useMemo(
+    () =>
+      ALL.filter((r) => {
+        if (r.honorableMention) return filters.showHonorable && !filters.safety.size;
+        if (filters.safety.size && !filters.safety.has(r.safetyLevel)) return false;
+        if (filters.dedicatedFryer && !r.dedicatedFryer) return false;
+        if (filters.celiacVerified && !r.celiacVerified) return false;
+        return true;
+      }),
+    [filters.showHonorable, filters.safety, filters.dedicatedFryer, filters.celiacVerified]
+  );
+
+  const cuisineCounts = useMemo(() => {
+    const counts = {};
+    for (const r of eligible)
+      for (const c of r.cuisine) counts[c] = (counts[c] || 0) + 1;
+    return counts;
+  }, [eligible]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = ALL.filter((r) => {
-      if (filters.safety.size && !filters.safety.has(r.safetyLevel)) return false;
-      if (filters.dedicatedFryer && !r.dedicatedFryer) return false;
-      if (filters.celiacVerified && !r.celiacVerified) return false;
+    const list = eligible.filter((r) => {
       if (r.priceLevel > filters.maxPrice) return false;
       if (filters.cuisine.size && !r.cuisine.some((c) => filters.cuisine.has(c)))
         return false;
@@ -72,9 +93,16 @@ export default function App() {
       list.sort(
         (a, b) => haversineMiles(position, a) - haversineMiles(position, b)
       );
+    } else {
+      // spotlight spots first, then featured, then the rest
+      list.sort(
+        (a, b) =>
+          (b.spotlight ? 1 : 0) - (a.spotlight ? 1 : 0) ||
+          (b.featured ? 1 : 0) - (a.featured ? 1 : 0)
+      );
     }
     return list;
-  }, [filters, query, position]);
+  }, [eligible, filters.maxPrice, filters.cuisine, query, position]);
 
   // Proximity nudge: when a location fix comes in, nag about the nearest spot
   // you haven't been nagged about in the last hour.
@@ -83,6 +111,7 @@ export default function App() {
     const now = Date.now();
     let best = null;
     for (const r of ALL) {
+      if (r.honorableMention) continue; // only nudge toward celiac-safe spots
       const d = haversineMiles(position, r);
       if (d > NUDGE_RADIUS_MI) continue;
       const last = nudgeLog.current[r.id] || 0;
@@ -209,7 +238,8 @@ export default function App() {
               filters={filters}
               setFilters={setFilters}
               count={filtered.length}
-              total={ALL.length}
+              total={filters.showHonorable ? ALL.length : CELIAC_COUNT}
+              cuisineCounts={cuisineCounts}
             />
           </div>
           <div className="list-wrap">
@@ -243,6 +273,12 @@ export default function App() {
             <span>
               <i style={{ background: '#b07d2f' }} /> GF menu
             </span>
+            {filters.showHonorable ? (
+              <span>
+                <i style={{ background: '#8a8f98', opacity: 0.6 }} /> Honorable
+                mention
+              </span>
+            ) : null}
           </div>
         </section>
       </main>

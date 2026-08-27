@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { SAFETY_META, priceLabel, mapsUrl, verifiedLabel } from '../lib/format';
+import {
+  SAFETY_META,
+  priceLabel,
+  directionsUrl,
+  directionsProvider,
+  verifiedLabel,
+} from '../lib/format';
 import { getReviews, addReview, deleteReview, summarize } from '../lib/reviews';
 import { getVisits, checkIn, undoLastCheckIn, POINTS } from '../lib/profile';
 import { haversineMiles, formatDistance, walkMinutes } from '../lib/geo';
@@ -130,8 +136,14 @@ export default function RestaurantDetail({
         </div>
 
         <div className="detail-links">
-          <a href={mapsUrl(r)} target="_blank" rel="noreferrer" className="btn">
-            Directions
+          <a
+            href={directionsUrl(r, userPosition)}
+            target="_blank"
+            rel="noreferrer"
+            className="btn"
+          >
+            Directions{userPosition ? ' from here' : ''}
+            <span className="btn-sub"> · {directionsProvider()}</span>
           </a>
           {r.website ? (
             <a href={r.website} target="_blank" rel="noreferrer" className="btn btn-ghost">

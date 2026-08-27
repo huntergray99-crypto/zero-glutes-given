@@ -3,7 +3,16 @@ import { CUISINES } from '../data/restaurants';
 
 const SAFETY_ORDER = ['dedicated', 'celiac-friendly', 'gf-menu'];
 
-export default function Filters({ filters, setFilters, count, total }) {
+const EMPTY_FILTERS = {
+  safety: new Set(),
+  cuisine: new Set(),
+  dedicatedFryer: false,
+  celiacVerified: false,
+  maxPrice: 4,
+  showHonorable: false,
+};
+
+export default function Filters({ filters, setFilters, count, total, cuisineCounts }) {
   function toggleSafety(level) {
     setFilters((f) => {
       const next = new Set(f.safety);
@@ -27,7 +36,10 @@ export default function Filters({ filters, setFilters, count, total }) {
     filters.cuisine.size ||
     filters.dedicatedFryer ||
     filters.celiacVerified ||
-    filters.maxPrice < 4;
+    filters.maxPrice < 4 ||
+    filters.showHonorable;
+
+  const shownCuisines = CUISINES.filter((c) => (cuisineCounts[c] || 0) > 0);
 
   return (
     <div className="filters">
@@ -38,15 +50,7 @@ export default function Filters({ filters, setFilters, count, total }) {
         {active ? (
           <button
             className="link-btn"
-            onClick={() =>
-              setFilters({
-                safety: new Set(),
-                cuisine: new Set(),
-                dedicatedFryer: false,
-                celiacVerified: false,
-                maxPrice: 4,
-              })
-            }
+            onClick={() => setFilters({ ...EMPTY_FILTERS })}
           >
             Clear all
           </button>
@@ -111,16 +115,32 @@ export default function Filters({ filters, setFilters, count, total }) {
       <fieldset>
         <legend>Cuisine</legend>
         <div className="chips">
-          {CUISINES.map((c) => (
+          {shownCuisines.map((c) => (
             <button
               key={c}
               className={`chip ${filters.cuisine.has(c) ? 'chip-on' : ''}`}
               onClick={() => toggleCuisine(c)}
             >
               {c}
+              <span className="chip-count">{cuisineCounts[c]}</span>
             </button>
           ))}
         </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Honorable mentions</legend>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={filters.showHonorable}
+            onChange={(e) =>
+              setFilters((f) => ({ ...f, showHonorable: e.target.checked }))
+            }
+          />
+          <span className="dot" style={{ background: SAFETY_META.honorable.color }} />
+          Show healthy &amp; affordable spots (not celiac-safe)
+        </label>
       </fieldset>
     </div>
   );

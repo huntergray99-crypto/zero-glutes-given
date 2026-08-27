@@ -237,18 +237,21 @@ export default function MapView({
             <CircleMarker
               key={r.id}
               center={[r.lat, r.lng]}
-              radius={isSelected ? 11 : r.featured ? 8 : 7}
+              radius={
+                isSelected ? 11 : r.spotlight ? 9 : r.honorableMention ? 6 : r.featured ? 8 : 7
+              }
               pathOptions={{
-                color: r.featured ? '#f5c518' : '#fff',
-                weight: isSelected ? 3 : r.featured ? 2.5 : 1.5,
+                color: r.spotlight || r.featured ? '#f5c518' : '#fff',
+                weight: isSelected ? 3 : r.spotlight ? 3 : r.featured ? 2.5 : 1.5,
                 fillColor: SAFETY_META[r.safetyLevel].color,
-                fillOpacity: 1,
+                fillOpacity: r.honorableMention ? 0.5 : 1,
+                dashArray: r.honorableMention ? '2 3' : null,
               }}
               eventHandlers={{ click: () => onSelect(r.id) }}
             >
               <Tooltip direction="top" offset={[0, -6]}>
                 <strong>{r.name}</strong>
-                {r.featured ? ' ★' : ''}
+                {r.spotlight ? ' ★ local hero' : r.featured ? ' ★' : ''}
                 <br />
                 {SAFETY_META[r.safetyLevel].short}
               </Tooltip>

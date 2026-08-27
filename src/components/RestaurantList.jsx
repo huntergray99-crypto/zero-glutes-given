@@ -49,14 +49,19 @@ export default function RestaurantList({
           <li key={r.id}>
             <button
               ref={(el) => (refs.current[r.id] = el)}
-              className={`rcard ${r.id === selectedId ? 'rcard-on' : ''}`}
+              className={`rcard ${r.id === selectedId ? 'rcard-on' : ''} ${
+                r.spotlight ? 'rcard-spotlight' : ''
+              } ${r.honorableMention ? 'rcard-honorable' : ''}`}
               onClick={() => onSelect(r.id)}
             >
               <span className="rcard-bar" style={{ background: meta.color }} />
               <span className="rcard-body">
+                {r.spotlight ? (
+                  <span className="spotlight-ribbon">★ Local hero — the GF community's bar</span>
+                ) : null}
                 <span className="rcard-top">
                   <span className="rcard-name">
-                    {r.featured ? <span className="star">★ </span> : null}
+                    {r.featured && !r.spotlight ? <span className="star">★ </span> : null}
                     {r.name}
                   </span>
                   <span className="rcard-price">{priceLabel(r.priceLevel)}</span>
