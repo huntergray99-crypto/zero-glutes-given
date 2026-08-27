@@ -1,16 +1,21 @@
 :root {
-  --green: #1b7f4b;
-  --green-dark: #145d37;
-  --ink: #1c2321;
-  --muted: #5c6b64;
-  --line: #e2e6e3;
-  --bg: #f6f7f5;
-  --card: #ffffff;
-  --warn: #b3261e;
+  /* Apple-Maps-at-night dark palette */
+  --green: #1f8b53;
+  --green-bright: #34c77b;
+  --green-dark: #14663c;
+  --ink: #e7ebee;
+  --muted: #9aa4ad;
+  --line: #2b3138;
+  --bg: #0f1215;
+  --card: #191d21;
+  --card-2: #22272c;
+  --warn: #ff6b5e;
+  --warn-bg: #3a1f1c;
 
   font: 16px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
     Arial, sans-serif;
   color: var(--ink);
+  color-scheme: dark;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -45,5 +50,42 @@ button {
 }
 
 a {
-  color: var(--green-dark);
+  color: var(--green-bright);
+}
+
+/* Leaflet tweaks for dark UI */
+.leaflet-container {
+  background: #0b0d0f;
+}
+
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  background: var(--card);
+  color: var(--ink);
+  border-bottom-color: var(--line);
+}
+
+.leaflet-bar a.leaflet-disabled {
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.leaflet-tooltip {
+  background: var(--card);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.leaflet-tooltip-top::before {
+  border-top-color: var(--line);
+}
+
+.leaflet-control-attribution {
+  background: rgba(10, 12, 14, 0.7) !important;
+  color: var(--muted) !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--muted) !important;
 }

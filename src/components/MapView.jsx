@@ -1,8 +1,56 @@
-import { useEffect } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap } from 'react-leaflet';
+import { useEffect, useState } from 'react';
+import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+  Tooltip,
+  useMap,
+} from 'react-leaflet';
 import { SAFETY_META } from '../lib/format';
 
 const SEATTLE_CENTER = [47.615, -122.33];
+
+// All tiles are Esri ArcGIS Online — free, no API key, consistent look.
+const BASEMAPS = {
+  dark: {
+    label: 'Dark',
+    // Esri Dark Gray Canvas — muted Apple-Maps-at-night basemap
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    attribution:
+      'Tiles &copy; <a href="https://www.esri.com/">Esri</a> — Esri, HERE, Garmin, &copy; OpenStreetMap contributors',
+    maxZoom: 19,
+    maxNativeZoom: 16,
+  },
+  satellite: {
+    label: 'Satellite',
+    // Esri World Imagery, with Esri reference overlays for labels + roads
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution:
+      'Imagery &copy; <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics, GIS User Community',
+    maxZoom: 19,
+    maxNativeZoom: 19,
+  },
+};
+
+const OVERLAYS = {
+  dark: [
+    'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+  ],
+  satellite: [
+    'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',
+    'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+  ],
+};
+
+function loadBasemap() {
+  try {
+    const v = localStorage.getItem('zgg.basemap');
+    if (v && BASEMAPS[v]) return v;
+  } catch {
+    /* ignore */
+  }
+  return 'dark';
+}
 
 function FitToSelection({ restaurant }) {
   const map = useMap();
@@ -23,14 +71,11 @@ function KeepSized() {
     const fix = () => map.invalidateSize({ animate: false });
     const container = map.getContainer();
 
-    // Recompute a few times right after mount while the flex layout settles
-    // (and, in dev, while the bundled CSS is injected after first paint).
     const timers = [0, 80, 200, 400, 800, 1400].map((ms) => setTimeout(fix, ms));
 
     const ro = new ResizeObserver(fix);
     ro.observe(container);
 
-    // fires when the map scrolls back into view after being display:none
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) fix();
@@ -50,46 +95,91 @@ function KeepSized() {
   return null;
 }
 
+function BasemapToggle({ value, onChange }) {
+  return (
+    <div className="basemap-toggle">
+      {Object.entries(BASEMAPS).map(([key, cfg]) => (
+        <button
+          key={key}
+          className={value === key ? 'on' : ''}
+          onClick={() => onChange(key)}
+          type="button"
+        >
+          {cfg.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function MapView({ restaurants, selectedId, onSelect }) {
   const selected = restaurants.find((r) => r.id === selectedId) || null;
+  const [basemap, setBasemap] = useState(loadBasemap);
+
+  function chooseBasemap(key) {
+    setBasemap(key);
+    try {
+      localStorage.setItem('zgg.basemap', key);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const cfg = BASEMAPS[basemap];
 
   return (
-    <MapContainer
-      center={SEATTLE_CENTER}
-      zoom={12}
-      scrollWheelZoom
-      className="map"
-      preferCanvas
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <KeepSized />
-      <FitToSelection restaurant={selected} />
-      {restaurants.map((r) => {
-        const isSelected = r.id === selectedId;
-        return (
-          <CircleMarker
-            key={r.id}
-            center={[r.lat, r.lng]}
-            radius={isSelected ? 11 : 7}
-            pathOptions={{
-              color: '#fff',
-              weight: isSelected ? 3 : 1.5,
-              fillColor: SAFETY_META[r.safetyLevel].color,
-              fillOpacity: 1,
-            }}
-            eventHandlers={{ click: () => onSelect(r.id) }}
-          >
-            <Tooltip direction="top" offset={[0, -6]}>
-              <strong>{r.name}</strong>
-              <br />
-              {SAFETY_META[r.safetyLevel].short}
-            </Tooltip>
-          </CircleMarker>
-        );
-      })}
-    </MapContainer>
+    <>
+      <BasemapToggle value={basemap} onChange={chooseBasemap} />
+      <MapContainer
+        center={SEATTLE_CENTER}
+        zoom={12}
+        scrollWheelZoom
+        className="map"
+        preferCanvas
+      >
+        <TileLayer
+          key={basemap}
+          url={cfg.url}
+          attribution={cfg.attribution}
+          maxZoom={cfg.maxZoom}
+          maxNativeZoom={cfg.maxNativeZoom}
+        />
+        {OVERLAYS[basemap].map((url) => (
+          <TileLayer
+            key={url}
+            url={url}
+            maxZoom={cfg.maxZoom}
+            maxNativeZoom={cfg.maxNativeZoom}
+          />
+        ))}
+
+        <KeepSized />
+        <FitToSelection restaurant={selected} />
+
+        {restaurants.map((r) => {
+          const isSelected = r.id === selectedId;
+          return (
+            <CircleMarker
+              key={r.id}
+              center={[r.lat, r.lng]}
+              radius={isSelected ? 11 : 7}
+              pathOptions={{
+                color: '#fff',
+                weight: isSelected ? 3 : 1.5,
+                fillColor: SAFETY_META[r.safetyLevel].color,
+                fillOpacity: 1,
+              }}
+              eventHandlers={{ click: () => onSelect(r.id) }}
+            >
+              <Tooltip direction="top" offset={[0, -6]}>
+                <strong>{r.name}</strong>
+                <br />
+                {SAFETY_META[r.safetyLevel].short}
+              </Tooltip>
+            </CircleMarker>
+          );
+        })}
+      </MapContainer>
+    </>
   );
 }
