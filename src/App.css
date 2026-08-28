@@ -1319,6 +1319,133 @@
   flex: none;
 }
 
+/* ---------- neighborhood bar ---------- */
+.hood-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+
+.hood-bar-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  background: var(--card-2);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hood-pin {
+  font-size: 12px;
+}
+
+.hood-bar-count {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 12px;
+  border-left: 1px solid var(--line);
+  padding-left: 8px;
+}
+
+.hood-bar-caret {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.hood-bar-clear {
+  border: none;
+  background: none;
+  color: var(--green-bright);
+  font-size: 12.5px;
+  text-decoration: underline;
+}
+
+/* ---------- neighborhood picker ---------- */
+.hood-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.hood-modal {
+  position: relative;
+  width: 460px;
+  max-width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 24px 22px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.hood-modal h2 {
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.hood-modal > .muted {
+  margin-bottom: 14px;
+  display: block;
+}
+
+.hood-loc {
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.hood-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.hood-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--card-2);
+  color: var(--ink);
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.hood-chip.on {
+  border-color: var(--green-bright);
+  background: rgba(52, 199, 123, 0.14);
+}
+
+.hood-chip-count {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 12px;
+  flex: none;
+}
+
+@media (max-width: 480px) {
+  .hood-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---------- update prompt ---------- */
 .update-toast {
   position: fixed;

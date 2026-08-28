@@ -9,11 +9,20 @@ import RestaurantDetail from './components/RestaurantDetail';
 import ProfilePanel from './components/ProfilePanel';
 import FeedPanel from './components/FeedPanel';
 import SearchBox from './components/SearchBox';
+import NeighborhoodPicker from './components/NeighborhoodPicker';
 import Toast from './components/Toast';
 import { useGeolocation } from './lib/useGeolocation';
 import { haversineMiles, formatDistance, walkMinutes } from './lib/geo';
 import { nudgeLine } from './lib/nudges';
 import { matchRestaurant } from './lib/search';
+import {
+  getHood,
+  setHood,
+  hoodSeen,
+  markHoodSeen,
+  neighborhoodSpotIds,
+  nearestNeighborhood,
+} from './lib/neighborhoods';
 import { computeStats, dedupeCheckIns } from './lib/profile';
 import { useCloud } from './lib/CloudContext';
 import './App.css';
@@ -56,10 +65,18 @@ export default function App() {
   const [profileVersion, setProfileVersion] = useState(0);
   const [toast, setToast] = useState(null);
   const [fitRequest, setFitRequest] = useState(null);
+  const [hood, setHoodState] = useState(getHood);
+  const [showHoodPicker, setShowHoodPicker] = useState(false);
 
-  const { position, status: locateStatus, toggle: toggleLocate } = useGeolocation();
+  const {
+    position,
+    status: locateStatus,
+    start: startLocate,
+    toggle: toggleLocate,
+  } = useGeolocation();
   const { signedIn, syncStats } = useCloud();
   const nudgeLog = useRef(loadNudgeLog());
+  const pendingGpsHood = useRef(false);
 
   const bumpProfile = () => setProfileVersion((v) => v + 1);
   const openFeed = (tag = null) => setFeedTag(tag);
@@ -85,12 +102,17 @@ export default function App() {
     return counts;
   }, [eligible]);
 
+  const searching = query.trim().length > 0;
+
   const filtered = useMemo(() => {
     const list = eligible.filter((r) => {
       if (r.priceLevel > filters.maxPrice) return false;
       if (filters.cuisine.size && !r.cuisine.some((c) => filters.cuisine.has(c)))
         return false;
       if (!matchRestaurant(r, query)) return false;
+      // Neighborhood mode narrows the list/map — but a search overrides it so
+      // you can always find a spot anywhere.
+      if (hood && !searching && r.neighborhood !== hood) return false;
       return true;
     });
     if (position) {
@@ -106,7 +128,7 @@ export default function App() {
       );
     }
     return list;
-  }, [eligible, filters.maxPrice, filters.cuisine, query, position]);
+  }, [eligible, filters.maxPrice, filters.cuisine, query, searching, position, hood]);
 
   // Proximity nudge: when a location fix comes in, nag about the nearest spot
   // you haven't been nagged about in the last hour.
@@ -194,6 +216,49 @@ export default function App() {
     setFitRequest({ ids: filtered.map((r) => r.id), n: Date.now() });
   }
 
+  // ---- neighborhood mode ----
+
+  function frameHood(name) {
+    const ids = name
+      ? neighborhoodSpotIds(name)
+      : ALL.filter((r) => !r.honorableMention).map((r) => r.id);
+    setFitRequest({ ids, n: Date.now() });
+  }
+
+  function applyHood(name) {
+    setHood(name);
+    setHoodState(name);
+    markHoodSeen();
+    setShowHoodPicker(false);
+    setQuery('');
+    setSelectedId(null);
+    setDetailId(null);
+    setMobileView('map');
+    frameHood(name);
+  }
+
+  function useLocationForHood() {
+    pendingGpsHood.current = true;
+    startLocate();
+  }
+
+  // First run: offer the neighborhood picker. On later loads, re-frame the
+  // saved neighborhood once the map is up.
+  useEffect(() => {
+    if (!hoodSeen()) setShowHoodPicker(true);
+    else if (hood) frameHood(hood);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // "Use my location" in the picker: when the fix lands, snap to the nearest hood.
+  useEffect(() => {
+    if (!pendingGpsHood.current || !position) return;
+    pendingGpsHood.current = false;
+    const near = nearestNeighborhood(position);
+    if (near) applyHood(near.name);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [position]);
+
   return (
     <div className="app">
       <header className="topbar">
@@ -247,6 +312,28 @@ export default function App() {
           <span className="points-pill-level">{stats.level.name}</span>
         </button>
       </header>
+
+      <div className="hood-bar">
+        <button
+          className="hood-bar-btn"
+          onClick={() => setShowHoodPicker(true)}
+          title="Choose a neighborhood"
+        >
+          <span className="hood-pin">📍</span>
+          <span className="hood-bar-name">{hood || 'All Seattle'}</span>
+          <span className="hood-bar-count">
+            {searching
+              ? `${filtered.length} match${filtered.length === 1 ? '' : 'es'}`
+              : `${filtered.length} spot${filtered.length === 1 ? '' : 's'}`}
+          </span>
+          <span className="hood-bar-caret">▾</span>
+        </button>
+        {hood ? (
+          <button className="hood-bar-clear" onClick={() => applyHood(null)}>
+            All Seattle
+          </button>
+        ) : null}
+      </div>
 
       <div className="mobile-toggle">
         <button
@@ -361,6 +448,21 @@ export default function App() {
             setFeedTag(undefined);
             setShowProfile(true);
           }}
+        />
+      ) : null}
+
+      {showHoodPicker ? (
+        <NeighborhoodPicker
+          current={hood}
+          onPick={applyHood}
+          onClose={() => {
+            markHoodSeen();
+            setShowHoodPicker(false);
+          }}
+          onUseLocation={useLocationForHood}
+          locating={locateStatus === 'locating'}
+          locateDenied={locateStatus === 'denied' || locateStatus === 'error'}
+          dismissable={hoodSeen()}
         />
       ) : null}
 
