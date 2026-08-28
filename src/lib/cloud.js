@@ -25,6 +25,7 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { parseHashtags } from './posts';
+import { earnedBadges } from './badges';
 
 const POSTS = collection(db, 'posts');
 const USERS = collection(db, 'users');
@@ -138,6 +139,8 @@ export async function syncUserCard(stats) {
       checkIns: stats.totalCheckIns ?? 0,
       spots: stats.uniqueSpots ?? 0,
       reviews: stats.reviewsWritten ?? 0,
+      posts: stats.posts ?? 0,
+      badges: earnedBadges(stats).length,
       updatedAt: serverTimestamp(),
     },
     { merge: true }

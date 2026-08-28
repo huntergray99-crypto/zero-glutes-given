@@ -75,9 +75,13 @@ export default function App() {
     start: startLocate,
     toggle: toggleLocate,
   } = useGeolocation();
-  const { signedIn, syncStats } = useCloud();
+  const { signedIn, syncStats, posts: feedPosts, user } = useCloud();
   const nudgeLog = useRef(loadNudgeLog());
   const pendingGpsHood = useRef(false);
+
+  const myPostCount = signedIn
+    ? feedPosts.filter((p) => p.uid === user?.uid).length
+    : feedPosts.length;
 
   const bumpProfile = () => setProfileVersion((v) => v + 1);
   const openFeed = (tag = null) => setFeedTag(tag);
@@ -182,7 +186,7 @@ export default function App() {
   // recomputed each render; cheap, and profile/review bumps force the render
   void profileVersion;
   void reviewsVersion;
-  const stats = computeStats();
+  const stats = computeStats({ posts: myPostCount });
 
   // Push point/stat totals to this account's public card (drives the leaderboard
   // and cross-device sync). Fires whenever the local totals move.
@@ -190,7 +194,14 @@ export default function App() {
     if (!signedIn) return;
     syncStats(stats);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signedIn, syncStats, stats.points, stats.totalCheckIns, stats.reviewsWritten]);
+  }, [
+    signedIn,
+    syncStats,
+    stats.points,
+    stats.totalCheckIns,
+    stats.reviewsWritten,
+    stats.posts,
+  ]);
 
   function selectRestaurant(id) {
     setSelectedId(id);

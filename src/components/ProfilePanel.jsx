@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { computeStats, setHandle as setLocalProfileHandle, LEVELS } from '../lib/profile';
+import { badgeProgress } from '../lib/badges';
 import { SAFETY_META } from '../lib/format';
 import { useCloud } from '../lib/CloudContext';
 
@@ -17,9 +18,15 @@ export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
     signInGoogle,
     signInGuest,
     signOut,
+    posts: feedPosts,
   } = useCloud();
 
-  const stats = computeStats();
+  const myPostCount = signedIn
+    ? feedPosts.filter((p) => p.uid === user?.uid).length
+    : feedPosts.length;
+  const stats = computeStats({ posts: myPostCount });
+  const badges = badgeProgress(stats);
+  const earnedCount = badges.filter((b) => b.done).length;
   const [handleInput, setHandleInput] = useState(handle || stats.handle);
   const [authBusy, setAuthBusy] = useState(false);
   const [migrateMsg, setMigrateMsg] = useState(null);
@@ -205,12 +212,34 @@ export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
                     @{u.handle || 'anon'}
                     {u.uid === user?.uid ? ' (you)' : ''}
                   </span>
-                  <span className="lb-level">{u.level}</span>
+                  <span className="lb-level">
+                    {u.badges ? `${u.badges}🏅 · ` : ''}
+                    {u.level}
+                  </span>
                   <span className="lb-points">{u.points}</span>
                 </li>
               ))}
             </ol>
           )}
+        </div>
+
+        <div className="detail-block">
+          <h3>
+            Badges <span className="muted">— {earnedCount} of {badges.length}</span>
+          </h3>
+          <div className="badge-grid">
+            {badges.map((b) => (
+              <div
+                key={b.id}
+                className={`badge-cell ${b.done ? 'earned' : 'locked'}`}
+                title={b.need}
+              >
+                <span className="badge-icon">{b.icon}</span>
+                <span className="badge-name">{b.name}</span>
+                <span className="badge-need">{b.done ? 'Earned' : b.need}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="detail-block">
@@ -253,10 +282,13 @@ export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
             <li>First-ever check-in at a spot — <b>+20</b> discovery bonus</li>
             <li>Check in at a <span className="star">★</span> featured spot — <b>+25</b></li>
             <li>Write a celiac review — <b>+15</b></li>
+            <li>Share a photo or tip to the feed — <b>+5</b></li>
           </ul>
           <p className="muted">
-            Perks for the top eaters are coming. Levels:{' '}
-            {LEVELS.map((l) => l.name).join(' → ')}.
+            Levels: {LEVELS.map((l) => l.name).join(' → ')}. As we partner with
+            spots, badge and level holders get first crack at perks —
+            reservations, tasting events, GF specials. Early members keep their
+            standing.
           </p>
         </div>
 
