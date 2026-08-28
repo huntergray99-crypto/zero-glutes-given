@@ -1150,6 +1150,68 @@
   margin-bottom: 12px;
 }
 
+/* ---------- community notes ---------- */
+.note-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.note {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--card-2);
+}
+
+.note-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.note-handle {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.note-head time {
+  margin-left: auto;
+}
+
+.note p {
+  font-size: 13px;
+  margin: 4px 0 2px;
+  white-space: pre-wrap;
+}
+
+.note-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.note-form textarea {
+  font: inherit;
+  font-size: 13px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  resize: vertical;
+}
+
+.note-form .btn {
+  align-self: flex-start;
+}
+
 /* ---------- badges ---------- */
 .badge-grid {
   display: grid;

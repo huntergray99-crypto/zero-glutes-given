@@ -26,6 +26,7 @@ import { useCloud } from '../lib/CloudContext';
 import ReviewForm from './ReviewForm';
 import PostComposer from './PostComposer';
 import PostCard from './PostCard';
+import CommentThread from './CommentThread';
 
 const VERIFY_RADIUS_FT = 500;
 const VERIFY_RADIUS_MI = VERIFY_RADIUS_FT / 5280;
@@ -312,6 +313,8 @@ export default function RestaurantDetail({
             ))}
           </ul>
         </div>
+
+        <CommentThread restaurantId={r.id} />
 
         <div className="detail-block">
           <h3>
