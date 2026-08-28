@@ -42,6 +42,11 @@ const INITIAL_FILTERS = {
 
 const CELIAC_COUNT = ALL.filter((r) => !r.honorableMention).length;
 
+// Captured once at load — the deep-link effect cleans the URL, and React
+// StrictMode re-runs effects, so we can't re-read window.location there.
+const LAUNCH_PARAMS = new URLSearchParams(window.location.search);
+const LAUNCH_SPOT = LAUNCH_PARAMS.get('spot');
+
 const NUDGE_RADIUS_MI = 0.3;
 const NUDGE_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour per restaurant
 
@@ -261,10 +266,19 @@ export default function App() {
     startLocate();
   }
 
-  // First run: offer the neighborhood picker. On later loads, re-frame the
-  // saved neighborhood once the map is up.
+  // Deep link (?spot=<id>) + first-run neighborhood picker.
   useEffect(() => {
-    if (!hoodSeen()) setShowHoodPicker(true);
+    const deepLinked = LAUNCH_SPOT && ALL.some((r) => r.id === LAUNCH_SPOT);
+
+    if (deepLinked) {
+      setSelectedId(LAUNCH_SPOT);
+      setDetailId(LAUNCH_SPOT);
+    }
+    if (window.location.search) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+
+    if (!hoodSeen() && !deepLinked) setShowHoodPicker(true);
     else if (hood) frameHood(hood);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

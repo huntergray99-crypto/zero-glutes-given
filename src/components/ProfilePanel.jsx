@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { computeStats, setHandle as setLocalProfileHandle, LEVELS } from '../lib/profile';
 import { badgeProgress } from '../lib/badges';
 import { SAFETY_META } from '../lib/format';
+import { shareApp } from '../lib/share';
 import { useCloud } from '../lib/CloudContext';
+import MyPhotos from './MyPhotos';
 
 export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
   const {
@@ -32,6 +34,14 @@ export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
   const [migrateMsg, setMigrateMsg] = useState(null);
   const [migrateDone, setMigrateDone] = useState(false);
   const [authError, setAuthError] = useState(null);
+  const [shareMsg, setShareMsg] = useState(null);
+
+  async function handleShareApp() {
+    const res = await shareApp();
+    if (res === 'copied') setShareMsg('Link copied');
+    else if (res === 'failed') setShareMsg('Could not share');
+    if (res === 'copied' || res === 'failed') setTimeout(() => setShareMsg(null), 2000);
+  }
 
   useEffect(() => {
     setHandleInput(handle || stats.handle);
@@ -275,6 +285,8 @@ export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
           )}
         </div>
 
+        <MyPhotos onOpenRestaurant={onOpenRestaurant} />
+
         <div className="detail-block">
           <h3>How points work</h3>
           <ul className="points-key">
@@ -291,6 +303,10 @@ export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
             standing.
           </p>
         </div>
+
+        <button className="btn btn-ghost share-app" onClick={handleShareApp}>
+          {shareMsg || 'Share Zero Glutes Given'}
+        </button>
 
         <p className="disclaimer">
           {signedIn

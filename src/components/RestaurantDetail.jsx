@@ -22,6 +22,7 @@ import {
   rideUrl,
   isLateNow,
 } from '../lib/order';
+import { shareSpot } from '../lib/share';
 import { useCloud } from '../lib/CloudContext';
 import ReviewForm from './ReviewForm';
 import PostComposer from './PostComposer';
@@ -41,8 +42,18 @@ export default function RestaurantDetail({
 }) {
   const { posts: allPosts, removePost, user } = useCloud();
   const [flash, setFlash] = useState(null);
+  const [shareMsg, setShareMsg] = useState(null);
   if (!restaurant) return null;
   const r = restaurant;
+
+  async function handleShare() {
+    const result = await shareSpot(r);
+    if (result === 'copied') setShareMsg('Link copied');
+    else if (result === 'failed') setShareMsg('Could not share');
+    if (result === 'copied' || result === 'failed') {
+      setTimeout(() => setShareMsg(null), 2000);
+    }
+  }
   const meta = SAFETY_META[r.safetyLevel];
   const reviews = getReviews(r.id);
   const stats = summarize(reviews);
@@ -200,6 +211,9 @@ export default function RestaurantDetail({
               🚕 Ride here
             </a>
           ) : null}
+          <button type="button" className="btn btn-ghost" onClick={handleShare}>
+            {shareMsg || 'Share'}
+          </button>
         </div>
 
         <p className="detail-address">{r.address}</p>
