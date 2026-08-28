@@ -8,10 +8,12 @@ import UpdatePrompt from './components/UpdatePrompt';
 import RestaurantDetail from './components/RestaurantDetail';
 import ProfilePanel from './components/ProfilePanel';
 import FeedPanel from './components/FeedPanel';
+import SearchBox from './components/SearchBox';
 import Toast from './components/Toast';
 import { useGeolocation } from './lib/useGeolocation';
 import { haversineMiles, formatDistance, walkMinutes } from './lib/geo';
 import { nudgeLine } from './lib/nudges';
+import { matchRestaurant } from './lib/search';
 import { computeStats, dedupeCheckIns } from './lib/profile';
 import { useCloud } from './lib/CloudContext';
 import './App.css';
@@ -53,6 +55,7 @@ export default function App() {
   const [reviewsVersion, setReviewsVersion] = useState(0);
   const [profileVersion, setProfileVersion] = useState(0);
   const [toast, setToast] = useState(null);
+  const [fitRequest, setFitRequest] = useState(null);
 
   const { position, status: locateStatus, toggle: toggleLocate } = useGeolocation();
   const { signedIn, syncStats } = useCloud();
@@ -83,20 +86,11 @@ export default function App() {
   }, [eligible]);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
     const list = eligible.filter((r) => {
       if (r.priceLevel > filters.maxPrice) return false;
       if (filters.cuisine.size && !r.cuisine.some((c) => filters.cuisine.has(c)))
         return false;
-      if (
-        q &&
-        !(
-          r.name.toLowerCase().includes(q) ||
-          r.neighborhood.toLowerCase().includes(q) ||
-          r.cuisine.join(' ').toLowerCase().includes(q)
-        )
-      )
-        return false;
+      if (!matchRestaurant(r, query)) return false;
       return true;
     });
     if (position) {
@@ -178,6 +172,28 @@ export default function App() {
     selectRestaurant(id);
   }
 
+  // Search: picking a suggestion highlights it and flies the map there (no
+  // detail sheet — you land on the map first).
+  function pickFromSearch(id) {
+    setSelectedId(id);
+    setDetailId(null);
+    setMobileView('map');
+    setFitRequest({ ids: [id], n: Date.now() });
+  }
+
+  // Search: Enter / the icon. Frame whatever currently matches — one result
+  // zooms in, several (e.g. a neighborhood) fit into view.
+  function runSearch() {
+    if (!filtered.length) return;
+    setSelectedId(null);
+    setDetailId(null);
+    setMobileView('map');
+    if (filtered.length === 1) {
+      setSelectedId(filtered[0].id);
+    }
+    setFitRequest({ ids: filtered.map((r) => r.id), n: Date.now() });
+  }
+
   return (
     <div className="app">
       <header className="topbar">
@@ -210,12 +226,12 @@ export default function App() {
           </div>
         </div>
 
-        <input
-          className="search"
-          type="search"
-          placeholder="Search name, neighborhood, cuisine…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+        <SearchBox
+          query={query}
+          setQuery={setQuery}
+          options={eligible}
+          onPick={pickFromSearch}
+          onSubmit={runSearch}
         />
 
         <button className="feed-btn" onClick={() => openFeed(null)} title="Community feed">
@@ -291,6 +307,7 @@ export default function App() {
               userPosition={position}
               locateStatus={locateStatus}
               onLocate={toggleLocate}
+              fitRequest={fitRequest}
             />
           </ErrorBoundary>
           <div className="map-legend">

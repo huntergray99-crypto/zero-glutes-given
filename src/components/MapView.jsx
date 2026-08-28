@@ -135,6 +135,51 @@ function BasemapToggle({ value, onChange }) {
   );
 }
 
+// Frame a set of restaurants (a search result) when the request nonce changes.
+function FitBounds({ request, restaurants }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!request) return;
+    const pts = request.ids
+      .map((id) => restaurants.find((r) => r.id === id))
+      .filter((r) => r && Number.isFinite(r.lat) && Number.isFinite(r.lng))
+      .map((r) => [r.lat, r.lng]);
+    if (!pts.length) return;
+
+    // The map may have just been revealed (mobile list -> map) and not be
+    // sized yet; retry a few times until it has a real size.
+    let cancelled = false;
+    let tries = 0;
+    let timer = null;
+    const apply = () => {
+      if (cancelled) return;
+      if (map.getSize().x === 0) {
+        map.invalidateSize({ animate: false });
+        if (map.getSize().x === 0 && tries++ < 8) {
+          timer = setTimeout(apply, 120);
+          return;
+        }
+      }
+      try {
+        if (pts.length === 1) {
+          map.setView(pts[0], 15, { animate: true });
+        } else {
+          map.fitBounds(pts, { padding: [50, 50], maxZoom: 15 });
+        }
+      } catch {
+        map.setView(pts[0], 13, { animate: false });
+      }
+    };
+    timer = setTimeout(apply, 60);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [request?.n, map]);
+  return null;
+}
+
 // Recenter once when a fresh location fix first arrives.
 function FollowUser({ position }) {
   const map = useMap();
@@ -166,6 +211,7 @@ export default function MapView({
   userPosition,
   locateStatus,
   onLocate,
+  fitRequest,
 }) {
   const selected = restaurants.find((r) => r.id === selectedId) || null;
   const [basemap, setBasemap] = useState(loadBasemap);
@@ -234,6 +280,7 @@ export default function MapView({
 
         <KeepSized />
         <FitToSelection restaurant={selected} />
+        <FitBounds request={fitRequest} restaurants={restaurants} />
         <FollowUser position={userPosition} />
 
         {userPosition ? (
