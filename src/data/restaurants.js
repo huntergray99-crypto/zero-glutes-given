@@ -57,6 +57,13 @@ export const restaurants = [
     whatToOrder:
       'Poutine, the hot link corn dog in tempura batter, wings, the Angry Beaver burger.',
     lastVerified: '2026-08',
+    lateNight: true,
+    lateNote: 'Kitchen till midnight Fri & Sat, 10pm the rest of the week',
+    getThere: {
+      transit: 'Metro Route 5 stops right outside on Greenwood Ave N; RapidRide E on Aurora is a 5-min walk',
+      bike: 'Greenwood Ave N bike lane out front; the Interurban Trail is a few blocks west',
+      parking: 'Free street parking on Greenwood Ave and the side streets — usually easy except a Kraken game night',
+    },
   },
   {
     id: 'ghostfish-brewing',
@@ -78,6 +85,13 @@ export const restaurants = [
     whatToOrder:
       'Beer-battered fish & chips, fried chicken sandwich, pretzel bites. The fryer is dedicated GF.',
     lastVerified: '2026-08',
+    lateNight: true,
+    lateNote: 'Taproom till 10pm Fri & Sat, 9pm weeknights; kitchen stops 15 min before close',
+    getThere: {
+      transit: 'SODO Link light rail station is a ~10-min walk; buses run on 1st Ave S',
+      bike: 'The SODO Trail runs one block east on Occidental Ave S',
+      parking: 'Free street parking, plentiful in SODO on evenings and weekends',
+    },
   },
   {
     id: 'a-stir',
@@ -98,6 +112,13 @@ export const restaurants = [
       'The former Capitol Cider, reborn in 2023 as a Northern Mediterranean restaurant and bar that kept the all-gluten-free kitchen. Contemporary Spanish/French/Italian/Greek/Turkish small plates, all GF, with knowledgeable staff. Dinner only, Tue–Sun.',
     whatToOrder: 'Whatever the seasonal menu is doing with seafood; the fried items from the dedicated GF fryer.',
     lastVerified: '2026-08',
+    lateNight: true,
+    lateNote: 'Speakeasy bar till 1am Wed and 2am Fri & Sat — the rare fully gluten-free late-night spot in Seattle',
+    getThere: {
+      transit: 'Capitol Hill Link station is a 5-min walk; many buses on Pike, Pine, and Broadway',
+      bike: 'Pike/Pine bike lanes out front; the Broadway protected bikeway is one block east',
+      parking: 'Street only and paid until 10pm ($6–8/hr in Pike/Pine) — rough on weekend nights. Use a pay lot or come by transit',
+    },
   },
   {
     id: 'the-chicken-supply',
@@ -118,6 +139,11 @@ export const restaurants = [
       'Filipino fried chicken dredged in tapioca, rice, and potato starch — the entire menu is gluten-free. Named to the New York Times list of Seattle\'s best restaurants. Open Wed–Sun until they sell out; pre-order.',
     whatToOrder: 'Fried chicken (whole or by the piece), garlic rice, mac salad.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'Metro Route 5 on Greenwood Ave N; RapidRide E on Aurora is a ~7-min walk',
+      bike: 'Greenwood Ave N bike route runs past the door',
+      parking: 'Free street parking on Greenwood and the side streets',
+    },
   },
   {
     id: 'nuflours',
@@ -138,6 +164,11 @@ export const restaurants = [
       "Seattle's favorite dedicated gluten-free bakery since 2011 — breads, bagels, croissants, quiche, and celebration cakes. Open Mon–Sat.",
     whatToOrder: 'Sandwich bread loaves, morning buns, and the seasonal galettes.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'Metro Route 10 stops on 15th Ave E right outside',
+      bike: '15th Ave E has sharrows; a short ride from the Capitol Hill core',
+      parking: 'Free 2-hr street parking on 15th Ave E and the side streets — usually findable',
+    },
   },
   {
     id: 'askatu-bakery',
@@ -158,6 +189,11 @@ export const restaurants = [
       'Fully allergen-free bakery and cafe — 100% gluten-free, and also free of wheat, egg, and nuts, with many vegan options. Open Tue–Sat.',
     whatToOrder: 'Morning pastries, focaccia, and a cake slice from the case.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'A block from the 3rd Ave bus spine; Westlake Link station is a ~10-min walk',
+      bike: 'The 2nd Ave protected bike lane is one block over',
+      parking: 'Paid street parking and Belltown garages — free spots are rare here',
+    },
   },
   {
     id: 'frankie-and-jos',
@@ -178,6 +214,13 @@ export const restaurants = [
       'Plant-based ice cream shop that is 100% vegan, gluten-free, and soy-free, with gluten-free waffle cones. Note: flavors contain gluten-free oats.',
     whatToOrder: 'Brown Sugar Vanilla or Salty Caramel Ash in a GF cone.',
     lastVerified: '2026-08',
+    lateNight: true,
+    lateNote: 'Scooping till 11pm Fri & Sat, 10pm otherwise — a safe late dessert run',
+    getThere: {
+      transit: 'Metro Route 2 on E Union St; Capitol Hill Link station is a ~8-min walk',
+      bike: 'E Union St bike lane; steps from the Pike/Pine routes',
+      parking: 'Free street parking on E Union and the side streets, moderate turnover',
+    },
   },
   {
     id: 'sankaku-onigiri',
@@ -197,6 +240,11 @@ export const restaurants = [
       'A fully gluten-free Japanese onigiri counter inside Melrose Market. Homestyle rice balls with fillings like ume-konbu and tuna mayo, plus vegan options.',
     whatToOrder: 'A few onigiri, miso soup, and a matcha.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'Inside Melrose Market on Capitol Hill — a 6-min walk from the Link station',
+      bike: 'Off the Pike/Pine bike lanes; racks along Melrose Ave',
+      parking: 'Street only, paid until 10pm — a weeknight lunch is easy, evenings less so',
+    },
   },
   {
     id: 'yeobo-cafe',
@@ -236,6 +284,11 @@ export const restaurants = [
       'Fully vegetarian pizzeria with a gluten-free menu as long as the regular one: separate GF prep area, dedicated GF fryer, and staff who take celiac seriously.',
     whatToOrder: 'GF pizza, GF calzone, and the fried ravioli from the dedicated fryer.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'Metro Route 5 on Greenwood Ave N stops just outside',
+      bike: 'On the Greenwood Ave N bike route',
+      parking: 'Free street parking on Greenwood and side streets',
+    },
   },
   {
     id: 'esters-enoteca',
@@ -256,6 +309,11 @@ export const restaurants = [
       'An Italian wine bar that reverse-engineered its kitchen so gluten-free is the default and gluten dishes are the outliers — dedicated GF fryers, separate utensils. Pasta, panini, salads. Wed–Sat, dinner.',
     whatToOrder: 'GF pasta of the day, a panino, and a glass of something Italian.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'Metro Routes 5, 40, and 62 all run through Fremont within a 2–3 min walk',
+      bike: 'The Burke-Gilman Trail is three blocks south; Fremont Ave has a bike route',
+      parking: 'Paid 2-hr street parking in the Fremont core; some free spots on the residential side streets, tight on weekend nights',
+    },
   },
   {
     id: 'palermo-pizza-pasta',
@@ -370,6 +428,11 @@ export const restaurants = [
       "Raw bar from the region's biggest shellfish grower, inside Melrose Market. Oysters, clams, mussels, crab, and ceviche are naturally gluten-free. Bread is served alongside — ask for a separate plate.",
     whatToOrder: 'A dozen oysters, steamed clams (confirm the broth), Dungeness crab.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'Inside Melrose Market — a 6-min walk from the Capitol Hill Link station',
+      bike: 'Off the Pike/Pine bike lanes; racks on Melrose Ave',
+      parking: 'Street only, paid until 10pm; the Pike/Pine pay lots are the fallback',
+    },
   },
   {
     id: 'marination-ma-kai',
@@ -408,6 +471,13 @@ export const restaurants = [
       'Modern Vietnamese with GF items marked. Important for celiacs: they cook all noodles and dumplings in shared water and will not prepare them separately, so pho and noodle bowls are NOT celiac-safe here. Stick to rice plates.',
     whatToOrder: 'The rotisserie chicken with broken rice, or a rice plate — not the noodle dishes.',
     lastVerified: '2026-08',
+    lateNight: true,
+    lateNote: 'Open till midnight daily, later on weekends — but stick to the rice plates, the noodles are not celiac-safe',
+    getThere: {
+      transit: 'Metro Routes 60 and 3/4 on 12th Ave and Jefferson; a ~12-min walk from Capitol Hill Link',
+      bike: 'The 12th Ave bike lane passes the door',
+      parking: 'Free street parking on 12th Ave and the First Hill side streets after 8pm',
+    },
   },
   {
     id: 'portage-bay-cafe-ballard',
@@ -541,6 +611,13 @@ export const restaurants = [
       'Beloved cheap taco counter hidden in the Broadway alley. Corn tortillas and grilled meats are naturally GF; flour tortillas are on the same line, so be clear.',
     whatToOrder: 'Adobada taco with grilled pineapple and cheese, on corn.',
     lastVerified: '2026-08',
+    lateNight: true,
+    lateNote: 'Open till 10pm every night — cheap late eats on Broadway',
+    getThere: {
+      transit: 'Steps from the Capitol Hill Link station and the Broadway streetcar',
+      bike: 'On the Broadway protected bikeway',
+      parking: 'Paid street parking on Broadway until 10pm; a pay garage is under the station',
+    },
   },
   {
     id: 'sweet-alchemy-u-district',

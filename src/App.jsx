@@ -35,6 +35,7 @@ const INITIAL_FILTERS = {
   cuisine: new Set(),
   dedicatedFryer: false,
   celiacVerified: false,
+  openLate: false,
   maxPrice: 4,
   showHonorable: false,
 };
@@ -90,9 +91,16 @@ export default function App() {
         if (filters.safety.size && !filters.safety.has(r.safetyLevel)) return false;
         if (filters.dedicatedFryer && !r.dedicatedFryer) return false;
         if (filters.celiacVerified && !r.celiacVerified) return false;
+        if (filters.openLate && !r.lateNight) return false;
         return true;
       }),
-    [filters.showHonorable, filters.safety, filters.dedicatedFryer, filters.celiacVerified]
+    [
+      filters.showHonorable,
+      filters.safety,
+      filters.dedicatedFryer,
+      filters.celiacVerified,
+      filters.openLate,
+    ]
   );
 
   const cuisineCounts = useMemo(() => {

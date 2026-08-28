@@ -16,12 +16,19 @@ import {
   POINTS,
 } from '../lib/profile';
 import { haversineMiles, formatDistance, walkMinutes } from '../lib/geo';
+import {
+  doordashSearch,
+  uberEatsSearch,
+  rideUrl,
+  isLateNow,
+} from '../lib/order';
 import { useCloud } from '../lib/CloudContext';
 import ReviewForm from './ReviewForm';
 import PostComposer from './PostComposer';
 import PostCard from './PostCard';
 
-const VERIFY_RADIUS_MI = 0.2;
+const VERIFY_RADIUS_FT = 500;
+const VERIFY_RADIUS_MI = VERIFY_RADIUS_FT / 5280;
 
 export default function RestaurantDetail({
   restaurant,
@@ -43,6 +50,8 @@ export default function RestaurantDetail({
   const distMi = userPosition ? haversineMiles(userPosition, r) : null;
   const canVerify = distMi != null && distMi <= VERIFY_RADIUS_MI;
   const posts = allPosts.filter((p) => p.restaurantId === r.id);
+  const late = isLateNow();
+  const showDelivery = !r.honorableMention && r.order !== false;
 
   // recompute on flash so the button re-locks right after a check-in
   void flash;
@@ -130,8 +139,7 @@ export default function RestaurantDetail({
           {distMi != null && !canVerify ? (
             <p className="muted">
               You're {formatDistance(distMi)} out (~{walkMinutes(distMi)} min
-              walk). Check in within {VERIFY_RADIUS_MI * 5280} ft for the GPS
-              bonus.
+              walk). Check in within {VERIFY_RADIUS_FT} ft for the GPS bonus.
             </p>
           ) : null}
           {flash ? (
@@ -186,9 +194,84 @@ export default function RestaurantDetail({
               {r.phone}
             </a>
           ) : null}
+          {late ? (
+            <a href={rideUrl(r)} target="_blank" rel="noreferrer" className="btn btn-night">
+              🚕 Ride here
+            </a>
+          ) : null}
         </div>
 
         <p className="detail-address">{r.address}</p>
+
+        {r.lateNight ? (
+          <p className="late-note">
+            🌙 Open late{r.lateNote ? ` — ${r.lateNote}` : ''}
+          </p>
+        ) : null}
+
+        {r.getThere ? (
+          <div className="detail-block">
+            <h3>Getting there</h3>
+            <dl className="get-there">
+              {r.getThere.transit ? (
+                <div>
+                  <dt>🚆 Transit</dt>
+                  <dd>{r.getThere.transit}</dd>
+                </div>
+              ) : null}
+              {r.getThere.bike ? (
+                <div>
+                  <dt>🚲 Bike</dt>
+                  <dd>{r.getThere.bike}</dd>
+                </div>
+              ) : null}
+              {r.getThere.parking ? (
+                <div>
+                  <dt>🅿️ Parking</dt>
+                  <dd>{r.getThere.parking}</dd>
+                </div>
+              ) : null}
+            </dl>
+          </div>
+        ) : null}
+
+        {showDelivery ? (
+          <div className="detail-block">
+            <h3>Order &amp; pickup</h3>
+            <div className="detail-links">
+              <a
+                href={doordashSearch(r)}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-ghost"
+              >
+                Search DoorDash
+              </a>
+              <a
+                href={uberEatsSearch(r)}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-ghost"
+              >
+                Search Uber Eats
+              </a>
+              {r.website ? (
+                <a
+                  href={r.website}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn-ghost"
+                >
+                  Order on their site
+                </a>
+              ) : null}
+            </div>
+            <p className="rf-note">
+              Delivery kitchens can differ from the dining room — reconfirm your
+              celiac needs in the order notes.
+            </p>
+          </div>
+        ) : null}
 
         <div className="detail-block">
           <h3>

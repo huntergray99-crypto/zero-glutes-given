@@ -8,6 +8,7 @@ const EMPTY_FILTERS = {
   cuisine: new Set(),
   dedicatedFryer: false,
   celiacVerified: false,
+  openLate: false,
   maxPrice: 4,
   showHonorable: false,
 };
@@ -36,6 +37,7 @@ export default function Filters({ filters, setFilters, count, total, cuisineCoun
     filters.cuisine.size ||
     filters.dedicatedFryer ||
     filters.celiacVerified ||
+    filters.openLate ||
     filters.maxPrice < 4 ||
     filters.showHonorable;
 
@@ -96,6 +98,16 @@ export default function Filters({ filters, setFilters, count, total, cuisineCoun
             }
           />
           Community celiac-verified
+        </label>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={filters.openLate}
+            onChange={(e) =>
+              setFilters((f) => ({ ...f, openLate: e.target.checked }))
+            }
+          />
+          🌙 Open late (night owls)
         </label>
       </fieldset>
 
