@@ -264,6 +264,11 @@ export const restaurants = [
       'A 100% gluten-free Korean-inspired cafe and bar (opened 2025) — breakfast sandwiches, sandwiches on house GF bread, coffee, wine, and beer. Closed Wednesdays.',
     whatToOrder: 'A gluten-free breakfast sandwich and a coffee, or come back for wine and small plates.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'Metro Route 8 and the 11 run along E Madison St past the door',
+      bike: 'E Madison St has bike lanes connecting to the Central District and Capitol Hill',
+      parking: 'Free street parking on E Madison and the residential side streets — usually easy',
+    },
   },
   {
     id: 'razzis-pizzeria',
@@ -333,6 +338,11 @@ export const restaurants = [
       'Neighborhood Italian spot with a gluten-free crust (medium and large) and GF pasta options. Shared kitchen — flag celiac and ask how they handle prep.',
     whatToOrder: 'GF pizza and the GF baked pasta dishes.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'Metro Route 10 stops on 15th Ave E right outside',
+      bike: '15th Ave E sharrows; a short ride from the Capitol Hill core',
+      parking: 'Free 2-hr street parking on 15th Ave E and the side streets',
+    },
   },
   {
     id: 'cafe-flora',
@@ -352,6 +362,11 @@ export const restaurants = [
       'Fully vegetarian since 1991, with clearly marked GF dishes and kitchen staff experienced with allergen modifications. Great weekend brunch.',
     whatToOrder: 'Weekend brunch — GF pancakes and the tofu scramble.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'Metro Route 8 and the 11 stop on E Madison St at the door',
+      bike: 'E Madison St bike lanes; the Washington Park Arboretum loop is close',
+      parking: 'Free street parking on E Madison and the residential side streets',
+    },
   },
   {
     id: 'musang-beacon-hill',
@@ -371,6 +386,11 @@ export const restaurants = [
       "Chef Melissa Miranda's Filipinx restaurant. Note celiac on your reservation and the host brings a dedicated celiac menu with cross-contamination removed. Reservations recommended.",
     whatToOrder: 'Whatever is on the celiac menu that night — adobo, rice dishes, ube dessert.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'A short walk from Beacon Hill Link station; Route 36 runs on Beacon Ave S',
+      bike: 'The Beacon Ave S bike lane runs right past it',
+      parking: 'Free street parking on Beacon Ave and the side streets',
+    },
   },
   {
     id: 'bamboo-sushi-uvillage',
@@ -390,6 +410,11 @@ export const restaurants = [
       'Sustainable sushi where almost the entire menu is gluten-free — tamari by default, a dedicated tempura fryer with no cross-contamination, and only a few items containing wheat. Tell your server celiac.',
     whatToOrder: 'Nigiri and sashimi, GF tempura, the green tea mochi.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'Many Metro routes serve University Village; the U District Link station is a ~15-min walk',
+      bike: 'The Burke-Gilman Trail runs along the south edge of U Village',
+      parking: 'Free 2-hr parking in the U Village lots and garage',
+    },
   },
   {
     id: 'jacks-bbq',
@@ -409,6 +434,11 @@ export const restaurants = [
       'Central Texas barbecue just north of Georgetown. Brisket, ribs, and beef ribs are naturally gluten-free and the sauces are GF. Not a dedicated GF kitchen; skip anything breaded and confirm the sausage.',
     whatToOrder: 'Brisket plate with beans and slaw.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'Metro Route 124 runs on Airport Way S; a long walk from Link, so bus or drive',
+      bike: 'Airport Way S has a bike lane linking SODO to Georgetown',
+      parking: 'Free parking lot on site plus easy street parking',
+    },
   },
   {
     id: 'taylor-shellfish-melrose',
@@ -452,6 +482,11 @@ export const restaurants = [
       'Hawaiian-Korean spot on the water with GF items clearly marked. Shared fryer — stick to the grill items and rice bowls and ask about sauces. Best view in town.',
     whatToOrder: 'Kalua pork or tofu rice bowls, no mac salad. Skip anything fried.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'The West Seattle Water Taxi lands a short walk away; Route 775 shuttle connects the dock',
+      bike: 'Right on the Alki Trail — an easy ride from the water taxi or Alki',
+      parking: 'Free lot next door and street parking along Harbor Ave SW',
+    },
   },
   {
     id: 'ba-bar-capitol-hill',
@@ -497,6 +532,11 @@ export const restaurants = [
       'Popular brunch spot by the Ballard Locks with GF pancakes, French toast, and bread. The kitchen knows cross-contamination and servers are familiar with celiac; still, be explicit on a busy weekend.',
     whatToOrder: 'GF pancakes with the toppings bar, or an omelette with GF toast.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'RapidRide D and Route 40 stop on NW Market St right outside',
+      bike: 'The Burke-Gilman Trail (missing-link detour) and NW Market St bike lanes are close',
+      parking: 'Free street parking on NW Market and the side streets — tough on weekend brunch',
+    },
   },
   {
     id: 'arayas-place-u-district',
@@ -516,6 +556,11 @@ export const restaurants = [
       "The Northwest's first vegan Thai restaurant (since 1987). Many curries and stir-fries are GF with tamari swapped in — ask for the GF guidance when ordering.",
     whatToOrder: 'Green curry, pad see ew with tamari, mango sticky rice.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'On the Ave (University Way NE) — many Metro routes; U District Link station is a ~8-min walk',
+      bike: 'The Ave has bike lanes; the Burke-Gilman Trail is a few blocks south',
+      parking: 'Paid street parking on the Ave and side streets; a couple of pay lots nearby',
+    },
   },
   {
     id: 'frelard-tamales',
@@ -535,6 +580,11 @@ export const restaurants = [
       'Family and queer-owned tamale restaurant. Tamales are corn masa and gluten-free, and they say they do not use gluten in anything else they make (not a certified GF kitchen). Trusted by local celiacs.',
     whatToOrder: 'Pork in red sauce, the veggie tamale, rice and beans. Skip the croutoned salad and tres leches.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'On the Fremont/Ballard edge — Metro Routes 40 and 62 stop nearby on Leary Way / 36th',
+      bike: 'A block off the Burke-Gilman Trail; easy ride from Fremont or Ballard',
+      parking: 'Free street parking on the industrial side streets around N 36th St',
+    },
   },
   {
     id: 'fonda-la-catrina',
@@ -554,6 +604,11 @@ export const restaurants = [
       'Mexico City–style spot in Georgetown making tortillas, chips, and salsas in house. Corn-tortilla tacos and many plates are naturally GF; shared kitchen, so ask about mole and marinades.',
     whatToOrder: 'Tacos on corn tortillas, carne asada, elote.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'Metro Route 124 on Airport Way S stops in the Georgetown core',
+      bike: 'Airport Way S bike lane connects Georgetown to SODO and the stadiums',
+      parking: 'Free street parking throughout Georgetown, usually easy',
+    },
   },
   {
     id: 'mioposto-mount-baker',
@@ -573,6 +628,11 @@ export const restaurants = [
       'Family-owned pizzeria by Mount Baker Park with a GF crust. They are upfront that there is flour in the air and they can\'t guarantee a GF environment — best for gluten-sensitive, riskier for celiac.',
     whatToOrder: 'GF Margherita or the seasonal pie; the chopped salad.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'A short walk from Mount Baker Link station and the Mount Baker transit hub',
+      bike: 'The Mountains to Sound / Rainier Ave bike routes are close; Mount Baker Park is next door',
+      parking: 'Free street parking around Mount Baker Park and the side streets',
+    },
   },
   {
     id: 'nue-capitol-hill',
@@ -592,6 +652,11 @@ export const restaurants = [
       'Global street-food small plates from a menu that spans continents, many dishes naturally gluten-free. Shared kitchen and fryer — ask the server which plates are safe and how they handle celiac.',
     whatToOrder: 'Rice-noodle dishes and grilled skewers; confirm sauces are GF.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'A ~10-min walk from Capitol Hill Link; Route 11 on E Pine St is close',
+      bike: 'Off the Pike/Pine bike lanes; the 12th Ave lane is a block east',
+      parking: 'Street only, paid until 10pm in this stretch of Pike/Pine',
+    },
   },
   {
     id: 'tacos-chukis-broadway',
@@ -637,6 +702,11 @@ export const restaurants = [
       'Small-batch organic ice cream with GF cones available and many GF flavors. Cookies and cones are made in-house on shared equipment — ask for a clean scoop.',
     whatToOrder: 'Honey lavender or Thai tea in a GF cone.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'On the Ave (University Way NE); U District Link station is a ~5-min walk',
+      bike: 'The Ave bike lanes; the Burke-Gilman Trail is nearby',
+      parking: 'Paid street parking on the Ave and side streets',
+    },
   },
   {
     id: 'harvest-beat',
@@ -656,6 +726,11 @@ export const restaurants = [
       'Five-course plant-based tasting menu, one nightly seating at a chef\'s counter. They take dietary needs in advance and can run the whole menu gluten-free with notice.',
     whatToOrder: 'The set menu — tell them celiac when you book.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'Metro Route 44 runs on N 45th St through Wallingford past the door',
+      bike: 'N 45th St and the Wallingford greenways connect here; a few blocks from the Burke-Gilman',
+      parking: 'Free street parking on the Wallingford side streets',
+    },
   },
   {
     id: 'cactus-madison-park',
@@ -675,6 +750,11 @@ export const restaurants = [
       'Southwestern / Mexican with a dedicated gluten-intolerant menu; say celiac and they mark the order and take extra care. Not a dedicated facility — the corn chips are fried in oil shared with gluten items.',
     whatToOrder: 'GF enchiladas or plancha-seared dishes. Skip the chips if you are highly sensitive.',
     lastVerified: '2026-08',
+    getThere: {
+      transit: 'Metro Route 11 runs on E Madison St into Madison Park',
+      bike: 'E Madison St bike lanes lead down to Madison Park and the beach',
+      parking: 'Free street parking in the Madison Park village, tight on warm evenings',
+    },
   },
 
   // ---------- Honorable mentions ----------
