@@ -3,6 +3,7 @@ import { SAFETY_META, priceLabel } from '../lib/format';
 import { getReviews, summarize } from '../lib/reviews';
 import { getVisits } from '../lib/profile';
 import { haversineMiles, formatDistance } from '../lib/geo';
+import SuggestSpot from './SuggestSpot';
 
 function Stars({ value }) {
   const full = Math.round(value);
@@ -31,10 +32,16 @@ export default function RestaurantList({
 
   if (!restaurants.length) {
     return (
-      <p className="empty">
-        No spots match those filters. Try loosening the safety level or clearing
-        cuisines.
-      </p>
+      <div className="empty">
+        <p>
+          No spots match those filters. Try loosening the safety level or
+          clearing cuisines.
+        </p>
+        <p className="muted">
+          Know a celiac-safe spot we don’t list?{' '}
+          <SuggestSpot label="Suggest it" />
+        </p>
+      </div>
     );
   }
 

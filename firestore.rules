@@ -51,5 +51,17 @@ service cloud.firestore {
         && request.resource.data.handle is string
         && request.resource.data.handle.size() <= 24;
     }
+
+    // Community corrections / suggestions. Write-only for everyone (auth
+    // optional); only the admin reads them, via the Firebase console.
+    match /reports/{reportId} {
+      allow read, update, delete: if false;
+
+      allow create: if request.resource.data.type is string
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.restaurantName is string
+        && request.resource.data.restaurantName.size() <= 200;
+    }
   }
 }

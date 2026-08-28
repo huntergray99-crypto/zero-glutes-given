@@ -1150,6 +1150,48 @@
   margin-bottom: 12px;
 }
 
+/* ---------- report / suggest ---------- */
+.report-block {
+  margin-top: 20px;
+}
+
+.report-link {
+  font-size: 12.5px;
+}
+
+.report-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--card-2);
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 6px;
+}
+
+.report-form select,
+.report-form input,
+.report-form textarea {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--ink);
+  width: 100%;
+}
+
+.report-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.report-thanks {
+  color: var(--green-bright);
+}
+
 /* ---------- my photos ---------- */
 .my-photos {
   display: grid;

@@ -28,6 +28,7 @@ import ReviewForm from './ReviewForm';
 import PostComposer from './PostComposer';
 import PostCard from './PostCard';
 import CommentThread from './CommentThread';
+import ReportChange from './ReportChange';
 
 const VERIFY_RADIUS_FT = 500;
 const VERIFY_RADIUS_MI = VERIFY_RADIUS_FT / 5280;
@@ -347,6 +348,10 @@ export default function RestaurantDetail({
               />
             ))}
           </div>
+        </div>
+
+        <div className="detail-block report-block">
+          <ReportChange restaurant={r} />
         </div>
 
         <p className="disclaimer">

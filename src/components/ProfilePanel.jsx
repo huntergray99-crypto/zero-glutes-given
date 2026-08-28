@@ -5,6 +5,7 @@ import { SAFETY_META } from '../lib/format';
 import { shareApp } from '../lib/share';
 import { useCloud } from '../lib/CloudContext';
 import MyPhotos from './MyPhotos';
+import SuggestSpot from './SuggestSpot';
 
 export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
   const {
@@ -307,6 +308,11 @@ export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
         <button className="btn btn-ghost share-app" onClick={handleShareApp}>
           {shareMsg || 'Share Zero Glutes Given'}
         </button>
+
+        <div className="detail-block">
+          <h3>Know a spot we’re missing?</h3>
+          <SuggestSpot />
+        </div>
 
         <p className="disclaimer">
           {signedIn
