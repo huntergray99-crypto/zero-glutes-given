@@ -11,64 +11,63 @@ import { SAFETY_META } from '../lib/format';
 
 const SEATTLE_CENTER = [47.615, -122.33];
 
-// A MapTiler key (free tier, VITE_MAPTILER_KEY) buys the polished Google-Maps-
-// style "Streets" raster. Without one, Light falls back to standard OpenStreetMap
-// tiles — colored and labelled, just less refined.
-const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY || '';
-
-const LIGHT_TILES = MAPTILER_KEY
-  ? {
-      url: `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}${
-        window.devicePixelRatio > 1 ? '@2x' : ''
-      }.png?key=${MAPTILER_KEY}`,
-      attribution:
-        '<a href="https://www.maptiler.com/copyright/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxNativeZoom: 20,
-    }
-  : {
-      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxNativeZoom: 19,
-    };
+// A free MapTiler key (VITE_MAPTILER_KEY, cloud.maptiler.com) turns Light and
+// Dark into MapTiler's Streets styles — the polished Apple/Google-Maps look.
+// Without a key we fall back to OpenStreetMap (light) and Esri Dilate (dark),
+// both no-key.
+const MT = import.meta.env.VITE_MAPTILER_KEY || '';
+const r2x = typeof window !== 'undefined' && window.devicePixelRatio > 1 ? '@2x' : '';
 
 const BASEMAPS = {
-  dark: {
-    label: 'Dark',
-    // Esri Dark Gray Canvas — muted Apple-Maps-at-night basemap
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-    attribution:
-      'Tiles &copy; <a href="https://www.esri.com/">Esri</a> — Esri, HERE, Garmin, &copy; OpenStreetMap contributors',
-    maxZoom: 19,
-    maxNativeZoom: 16,
-  },
-  light: {
-    label: 'Light',
-    url: LIGHT_TILES.url,
-    attribution: LIGHT_TILES.attribution,
-    maxZoom: 19,
-    maxNativeZoom: LIGHT_TILES.maxNativeZoom,
-  },
+  light: MT
+    ? {
+        label: 'Light',
+        url: `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}${r2x}.png?key=${MT}`,
+        attribution:
+          '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 20,
+        maxNativeZoom: 20,
+      }
+    : {
+        label: 'Light',
+        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+        maxNativeZoom: 19,
+      },
+  dark: MT
+    ? {
+        label: 'Dark',
+        url: `https://api.maptiler.com/maps/streets-v2-dark/{z}/{x}/{y}${r2x}.png?key=${MT}`,
+        attribution:
+          '&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 20,
+        maxNativeZoom: 20,
+      }
+    : {
+        label: 'Dark',
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+        attribution:
+          'Tiles &copy; <a href="https://www.esri.com/">Esri</a> — Esri, HERE, Garmin, &copy; OpenStreetMap contributors',
+        maxZoom: 19,
+        maxNativeZoom: 16,
+        overlays: [
+          'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+        ],
+      },
   satellite: {
     label: 'Satellite',
-    // Esri World Imagery, with Esri reference overlays for labels + roads
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attribution:
       'Imagery &copy; <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics, GIS User Community',
     maxZoom: 19,
     maxNativeZoom: 19,
+    overlays: [
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+    ],
   },
-};
-
-const OVERLAYS = {
-  dark: [
-    'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
-  ],
-  light: [],
-  satellite: [
-    'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',
-    'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-  ],
 };
 
 function loadBasemap() {
@@ -119,7 +118,15 @@ function FitToSelection({ restaurant }) {
 function KeepSized() {
   const map = useMap();
   useEffect(() => {
-    const fix = () => map.invalidateSize({ animate: false });
+    const fix = () => {
+      const before = map.getSize();
+      map.invalidateSize({ animate: false });
+      // If the viewport actually grew, force a full re-render so the newly
+      // revealed area pulls tiles instead of staying blank.
+      if (!map.getSize().equals(before)) {
+        map.setView(map.getCenter(), map.getZoom(), { animate: false });
+      }
+    };
     const container = map.getContainer();
 
     const timers = [0, 80, 200, 400, 800, 1400].map((ms) => setTimeout(fix, ms));
@@ -294,11 +301,10 @@ export default function MapView({
           key={basemap}
           url={cfg.url}
           attribution={cfg.attribution}
-          subdomains={cfg.subdomains || 'abc'}
           maxZoom={cfg.maxZoom}
           maxNativeZoom={cfg.maxNativeZoom}
         />
-        {OVERLAYS[basemap].map((url) => (
+        {(cfg.overlays || []).map((url) => (
           <TileLayer
             key={url}
             url={url}

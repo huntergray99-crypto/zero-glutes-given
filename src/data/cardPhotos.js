@@ -56,9 +56,16 @@ function firstMatch(cuisines, table) {
   return null;
 }
 
+// Local /spots/*.webp files need the Vite base prefix (/zero-glutes-given/ on
+// GitHub Pages); external https URLs pass through untouched.
+function resolveAsset(p) {
+  if (/^https?:/.test(p)) return p;
+  return import.meta.env.BASE_URL + p.replace(/^\/+/, '');
+}
+
 export function photoFor(r) {
-  if (SPOT_PHOTOS[r.id]?.file) return SPOT_PHOTOS[r.id].file;
-  if (RESTAURANT_PHOTOS[r.id]) return RESTAURANT_PHOTOS[r.id];
+  if (SPOT_PHOTOS[r.id]?.file) return resolveAsset(SPOT_PHOTOS[r.id].file);
+  if (RESTAURANT_PHOTOS[r.id]) return resolveAsset(RESTAURANT_PHOTOS[r.id]);
   return firstMatch(r.cuisine || [], CUISINE_PHOTO);
 }
 
