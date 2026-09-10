@@ -1973,6 +1973,7 @@
 }
 
 .dcard {
+  flex: 0 0 auto;
   display: flex;
   gap: 0;
   border: 2px solid var(--line-strong);
