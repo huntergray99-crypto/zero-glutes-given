@@ -9,6 +9,7 @@ import RestaurantDetail from './components/RestaurantDetail';
 import ProfilePanel from './components/ProfilePanel';
 import FeedPanel from './components/FeedPanel';
 import SearchBox from './components/SearchBox';
+import BrowseView from './components/BrowseView';
 import NeighborhoodPicker from './components/NeighborhoodPicker';
 import Toast from './components/Toast';
 import { useGeolocation } from './lib/useGeolocation';
@@ -73,6 +74,7 @@ export default function App() {
   const [fitRequest, setFitRequest] = useState(null);
   const [hood, setHoodState] = useState(getHood);
   const [showHoodPicker, setShowHoodPicker] = useState(false);
+  const [view, setView] = useState('browse'); // 'browse' | 'explore'
 
   const {
     position,
@@ -223,8 +225,35 @@ export default function App() {
   function pickFromSearch(id) {
     setSelectedId(id);
     setDetailId(null);
+    setView('explore');
     setMobileView('map');
     setFitRequest({ ids: [id], n: Date.now() });
+  }
+
+  // A rail's "See all" — narrow the filters to that rail and drop into the list.
+  function seeAllFromRail(rail) {
+    if (rail.filter) {
+      setFilters((f) => {
+        const next = { ...f };
+        if (rail.filter.safety) next.safety = new Set(rail.filter.safety);
+        if (rail.filter.cuisine) next.cuisine = new Set(rail.filter.cuisine);
+        if ('openLate' in rail.filter) next.openLate = rail.filter.openLate;
+        if ('dedicatedFryer' in rail.filter)
+          next.dedicatedFryer = rail.filter.dedicatedFryer;
+        return next;
+      });
+    }
+    setQuery('');
+    setDetailId(null);
+    setView('explore');
+    setMobileView('list');
+    setFitRequest({ ids: rail.spots.map((s) => s.id), n: Date.now() });
+  }
+
+  function openMapView() {
+    setView('explore');
+    setMobileView('map');
+    frameHood(hood);
   }
 
   // Search: Enter / the icon. Frame whatever currently matches — one result
@@ -233,6 +262,7 @@ export default function App() {
     if (!filtered.length) return;
     setSelectedId(null);
     setDetailId(null);
+    setView('explore');
     setMobileView('map');
     if (filtered.length === 1) {
       setSelectedId(filtered[0].id);
@@ -257,7 +287,7 @@ export default function App() {
     setQuery('');
     setSelectedId(null);
     setDetailId(null);
-    setMobileView('map');
+    setView('browse');
     frameHood(name);
   }
 
@@ -273,6 +303,7 @@ export default function App() {
     if (deepLinked) {
       setSelectedId(LAUNCH_SPOT);
       setDetailId(LAUNCH_SPOT);
+      setView('explore');
     }
     if (window.location.search) {
       window.history.replaceState(null, '', window.location.pathname);
@@ -295,7 +326,14 @@ export default function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <div className="brand">
+        <button
+          className="brand"
+          onClick={() => {
+            setDetailId(null);
+            setView('browse');
+          }}
+          title="Back to browse"
+        >
           <span className="brand-mark" aria-hidden>
             <svg viewBox="0 0 32 32" width="30" height="30">
               <circle cx="16" cy="16" r="15" fill="#1b7f4b" />
@@ -322,7 +360,7 @@ export default function App() {
             <h1>Zero Glutes Given</h1>
             <p>Celiac-safe dining · Seattle &amp; the Eastside</p>
           </div>
-        </div>
+        </button>
 
         <SearchBox
           query={query}
@@ -366,29 +404,58 @@ export default function App() {
             All spots
           </button>
         ) : null}
+
+        <span className="hood-bar-spacer" />
+
+        {view === 'explore' ? (
+          <button
+            className="hood-view-btn"
+            onClick={() => {
+              setDetailId(null);
+              setView('browse');
+            }}
+          >
+            ⊞ Browse
+          </button>
+        ) : (
+          <button className="hood-view-btn" onClick={openMapView}>
+            🗺 Map
+          </button>
+        )}
       </div>
 
-      <div className="mobile-toggle">
-        <button
-          className={mobileView === 'list' ? 'on' : ''}
-          onClick={() => setMobileView('list')}
-        >
-          List
-        </button>
-        <button
-          className={mobileView === 'map' ? 'on' : ''}
-          onClick={() => setMobileView('map')}
-        >
-          Map
-        </button>
-        <button
-          className={`filter-toggle ${showFilters ? 'on' : ''}`}
-          onClick={() => setShowFilters((s) => !s)}
-        >
-          Filters
-        </button>
-      </div>
+      {view === 'explore' ? (
+        <div className="mobile-toggle">
+          <button
+            className={mobileView === 'list' ? 'on' : ''}
+            onClick={() => setMobileView('list')}
+          >
+            List
+          </button>
+          <button
+            className={mobileView === 'map' ? 'on' : ''}
+            onClick={() => setMobileView('map')}
+          >
+            Map
+          </button>
+          <button
+            className={`filter-toggle ${showFilters ? 'on' : ''}`}
+            onClick={() => setShowFilters((s) => !s)}
+          >
+            Filters
+          </button>
+        </div>
+      ) : null}
 
+      {view === 'browse' ? (
+        <BrowseView
+          position={position}
+          hood={hood}
+          onOpen={selectRestaurant}
+          onSeeAll={seeAllFromRail}
+          onOpenMap={openMapView}
+        />
+      ) : (
       <main className="layout">
         <section className={`panel ${mobileView === 'map' ? 'panel-hidden' : ''}`}>
           <div className={`filters-wrap ${showFilters ? 'open' : ''}`}>
@@ -449,6 +516,7 @@ export default function App() {
           </div>
         </section>
       </main>
+      )}
 
       {detailRestaurant ? (
         <RestaurantDetail
