@@ -1874,6 +1874,216 @@
   }
 }
 
+/* ---------- top nav tabs ---------- */
+.navtabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 14px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  z-index: 6;
+}
+
+.navtab {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 14px 10px;
+  border-bottom: 2px solid transparent;
+}
+
+.navtab:hover {
+  color: var(--ink);
+}
+
+.navtab.on {
+  color: var(--green-bright);
+  border-bottom-color: var(--green-bright);
+}
+
+/* ---------- delivery ---------- */
+.delivery-filterbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 22px 8px;
+}
+
+.delivery-intro-h3 {
+  font-size: 14px;
+  margin: 18px 0 8px;
+}
+
+.delivery-modes {
+  display: grid;
+  gap: 8px;
+}
+
+.delivery-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--card-2);
+  box-shadow: var(--edge);
+}
+
+.delivery-mode:hover {
+  background: var(--card-3);
+  border-color: var(--green);
+}
+
+.delivery-mode-title {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.delivery-mode-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.dcard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 22px 0;
+  max-width: 720px;
+}
+
+.dcard {
+  display: flex;
+  gap: 0;
+  border: 2px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--card);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm), var(--edge);
+}
+
+.dcard-media {
+  flex: 0 0 116px;
+  border: none;
+  padding: 0;
+  background: var(--card-2);
+}
+
+.dcard-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.dcard-body {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 13px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dcard-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dcard-name {
+  border: none;
+  background: none;
+  color: var(--ink);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 0;
+  text-align: left;
+  letter-spacing: -0.01em;
+}
+
+.dcard-name:hover {
+  color: var(--green-bright);
+}
+
+.dcard-meta {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.dcard-order {
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.dcard-order b {
+  color: var(--ink);
+}
+
+.dcard-menu-toggle {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  color: var(--green-bright);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 0;
+}
+
+.dcard-menu {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+.dcard-menu-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.dcard-menu-links a {
+  font-size: 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  padding: 3px 10px;
+  color: var(--green-bright);
+  text-decoration: none;
+}
+
+.dcard-menu-links a:hover {
+  background: var(--card-2);
+}
+
+.dcard-order-btn {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+/* ---------- order-app chooser ---------- */
+.order-choice {
+  width: 380px;
+}
+
+.order-choice-apps {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.order-choice-app {
+  text-align: center;
+  font-size: 14px;
+  padding: 12px;
+}
+
 /* ---------- browse (DoorDash-style rails) ---------- */
 .browse {
   flex: 1;

@@ -13,6 +13,7 @@
 const TEMPLATES = {
   doordash: import.meta.env.VITE_AFFIL_DOORDASH || '',
   ubereats: import.meta.env.VITE_AFFIL_UBEREATS || '',
+  grubhub: import.meta.env.VITE_AFFIL_GRUBHUB || '',
 };
 
 export function affiliate(network, destUrl) {

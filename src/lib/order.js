@@ -64,6 +64,21 @@ export function uberEatsSearch(r) {
   return affiliate('ubereats', `https://www.ubereats.com/search?q=${q(r)}`);
 }
 
+export function grubhubSearch(r) {
+  return affiliate('grubhub', `https://www.grubhub.com/search?queryText=${q(r)}`);
+}
+
+// The three aggregators, in one call, for the "choose a platform" step.
+export const DELIVERY_APPS = [
+  { key: 'doordash', label: 'DoorDash', link: doordashSearch },
+  { key: 'grubhub', label: 'Grubhub', link: grubhubSearch },
+  { key: 'ubereats', label: 'Uber Eats', link: uberEatsSearch },
+];
+
+export function deliveryLinks(r) {
+  return DELIVERY_APPS.map((a) => ({ ...a, url: a.link(r) }));
+}
+
 // Order-ahead on the restaurant's own site, when they have one.
 export function websiteOrder(r) {
   return r.website || null;

@@ -10,6 +10,8 @@ import ProfilePanel from './components/ProfilePanel';
 import FeedPanel from './components/FeedPanel';
 import SearchBox from './components/SearchBox';
 import BrowseView from './components/BrowseView';
+import DeliveryView from './components/DeliveryView';
+import NavTabs from './components/NavTabs';
 import NeighborhoodPicker from './components/NeighborhoodPicker';
 import Toast from './components/Toast';
 import { useGeolocation } from './lib/useGeolocation';
@@ -75,6 +77,7 @@ export default function App() {
   const [hood, setHoodState] = useState(getHood);
   const [showHoodPicker, setShowHoodPicker] = useState(false);
   const [view, setView] = useState('browse'); // 'browse' | 'explore'
+  const [tab, setTab] = useState('home'); // 'home' | 'delivery'
 
   const {
     position,
@@ -384,6 +387,19 @@ export default function App() {
         </button>
       </header>
 
+      <NavTabs tab={tab} onChange={setTab} />
+
+      {tab === 'delivery' ? (
+        <DeliveryView
+          restaurants={ALL}
+          position={position}
+          onOpenRestaurant={selectRestaurant}
+          onUseLocation={startLocate}
+          locating={locateStatus === 'locating'}
+        />
+      ) : (
+        <>
+
       <div className="hood-bar">
         <button
           className="hood-bar-btn"
@@ -516,6 +532,8 @@ export default function App() {
           </div>
         </section>
       </main>
+      )}
+        </>
       )}
 
       {detailRestaurant ? (
