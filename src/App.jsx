@@ -393,9 +393,10 @@ export default function App() {
         <DeliveryView
           restaurants={ALL}
           position={position}
-          onOpenRestaurant={selectRestaurant}
+          locateStatus={locateStatus}
+          onLocate={toggleLocate}
           onUseLocation={startLocate}
-          locating={locateStatus === 'locating'}
+          onOpenRestaurant={selectRestaurant}
         />
       ) : (
         <>

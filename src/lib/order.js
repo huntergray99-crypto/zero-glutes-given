@@ -116,15 +116,132 @@ export function grubhubSearch(r) {
   return affiliate('grubhub', `https://www.grubhub.com/search?queryText=${q(r)}`);
 }
 
-// The three aggregators, in one call, for the "choose a platform" step.
-export const DELIVERY_APPS = [
-  { key: 'doordash', label: 'DoorDash', link: doordashSearch },
-  { key: 'grubhub', label: 'Grubhub', link: grubhubSearch },
-  { key: 'ubereats', label: 'Uber Eats', link: uberEatsSearch },
-];
+const SEARCH = { doordash: doordashSearch, grubhub: grubhubSearch, ubereats: uberEatsSearch };
+const LABEL = { doordash: 'DoorDash', grubhub: 'Grubhub', ubereats: 'Uber Eats' };
 
+// Which delivery apps each spot is actually on, web-verified Sept 2026.
+//   'https://…'  → confirmed, deep link to that store page
+//   true         → confirmed on the platform, no stable deep link (use search)
+//   (key absent) → NOT on that platform
+//   {}           → app delivery not offered — order from their own site
+//   (id absent from map) → unverified; fall back to all three as searches
+const DELIVERY = {
+  'the-angry-beaver': {
+    doordash: 'https://www.doordash.com/store/the-angry-beaver-8412-greenwood-ave-n-seattle-32776175/',
+    grubhub: 'https://www.grubhub.com/restaurant/the-angry-beaver-8412-greenwood-ave-n-seattle/9237216',
+  },
+  'ghostfish-brewing': {
+    doordash: 'https://www.doordash.com/store/ghostfish-brewing-company-seattle-915642',
+    grubhub: true,
+    ubereats: true,
+  },
+  'a-stir': { ubereats: 'https://www.ubereats.com/store/a-stir/C10C1H21REy1KXDeGCYDXQ' },
+  nuflours: {
+    doordash: 'https://www.doordash.com/store/nuflours-seattle-114186/',
+    grubhub: 'https://www.grubhub.com/restaurant/nuflours-518-15th-ave-e-seattle/2332090',
+  },
+  'the-chicken-supply': {
+    grubhub: 'https://www.grubhub.com/restaurant/the-chicken-supply-7410-greenwood-ave-n-seattle/9128648',
+  },
+  'razzis-pizzeria': {
+    doordash: 'https://www.doordash.com/store/razzis-pizzeria-seattle-1580495/',
+    grubhub: 'https://www.grubhub.com/restaurant/razzis-pizzeria-8523-greenwood-ave-n-seattle/206116',
+    ubereats: 'https://www.ubereats.com/store/razzis-pizzeria-greenwood/-Fm4o8ioQteREhMwvCxFbg',
+  },
+  'esters-enoteca': {
+    doordash: true,
+    grubhub: 'https://www.grubhub.com/restaurant/esters-enoteca-3416-fremont-avenue-north-seattle/1552669',
+  },
+  'musang-beacon-hill': {},
+  'bamboo-sushi-uvillage': {
+    doordash: 'https://www.doordash.com/store/bamboo-sushi-seattle-1025430/',
+    ubereats: 'https://www.ubereats.com/store/bamboo-sushi-university-village/xmCH7wqdU7e5S5WYHFfVzg',
+  },
+  'jacks-bbq': {
+    doordash: true,
+    grubhub: true,
+    ubereats: 'https://www.ubereats.com/store/jacks-bbq-sodo/spDk5H4ARwKUYfaP8VCAyw',
+  },
+  'taylor-shellfish-melrose': {},
+  'marination-ma-kai': {
+    doordash: 'https://www.doordash.com/store/marination-seattle-36465',
+    grubhub: 'https://www.grubhub.com/restaurant/marination-ma-kai-1660-harbor-avenue-southwest-seattle/1543591',
+    ubereats: 'https://www.ubereats.com/store/marination-ma-kai/KwrzZ-wlQMirOiUchBgWhw',
+  },
+  'ba-bar-capitol-hill': {
+    doordash: 'https://www.doordash.com/store/ba-bar-seattle-59605',
+    grubhub: 'https://www.grubhub.com/restaurant/ba-bar-550-12th-ave-seattle/2365744',
+    ubereats: 'https://www.ubereats.com/store/ba-bar-capitol-hill/8Acbv6QmRGK9VVl5H1SjZw',
+  },
+  'portage-bay-cafe-ballard': {
+    doordash: true,
+    grubhub: 'https://www.grubhub.com/restaurant/portage-bay-cafe---ballard-2821-nw-market-st-seattle/8023472',
+    ubereats: 'https://www.ubereats.com/store/portage-bay-cafe-ballard/ZSbd7JaBR66e-WYPbma5aQ',
+  },
+  'arayas-place-u-district': {
+    doordash: 'https://www.doordash.com/store/37139/',
+    grubhub: 'https://www.grubhub.com/restaurant/arayas-place-5240-university-way-seattle/1257509',
+    ubereats: 'https://www.ubereats.com/store/arayas-place-u-district/Wmmjk8oSS-CkALgiFRms5A',
+  },
+  'frelard-tamales': { doordash: true, ubereats: true },
+  'fonda-la-catrina': {
+    grubhub: 'https://www.grubhub.com/restaurant/fonda-la-catrina-5905-airport-way-s-seattle/2343807',
+    ubereats: 'https://www.ubereats.com/store/fonda-la-catrina/JkqVbeSuRYqI6UO3ACJm6Q',
+  },
+  'mioposto-mount-baker': {
+    doordash: 'https://www.doordash.com/store/mioposto-seattle-39368/',
+    grubhub: 'https://www.grubhub.com/restaurant/mioposto-mt-baker-3601-s-mcclellan-st-seattle/8812168',
+    ubereats: 'https://www.ubereats.com/store/mioposto-pizzeria-mt-baker/q--FzkUiWJmHglzazPlAPA',
+  },
+  'nue-capitol-hill': { doordash: true, grubhub: true },
+  'tacos-chukis-broadway': {},
+  'harvest-beat': {},
+  'sankaku-onigiri': {},
+  'cactus-madison-park': {
+    doordash: 'https://www.doordash.com/store/cactus-restaurants-seattle-32772/',
+    grubhub: 'https://www.grubhub.com/restaurant/cactus-4220-e-madison-st-seattle/1338659',
+    ubereats: 'https://www.ubereats.com/store/cactus-madison-park/HGTA79FNS1mbK-Ft4vqrdw',
+  },
+  'cantina-monarca-bellevue': {
+    doordash: 'https://www.doordash.com/store/cantina-monarca-bellevue-32560065/',
+  },
+  'frankie-and-jos': {
+    doordash: "https://www.doordash.com/store/frankie-&-jo's-seattle-619757/",
+    ubereats: 'https://www.ubereats.com/store/frankie-&-jos-capitol-hill-1010-e-union-st/RSjCGAmIVj-MhXYNwknP7Q',
+  },
+  'palermo-pizza-pasta': {
+    doordash: 'https://www.doordash.com/store/palermo-seattle-37974/',
+    grubhub: 'https://www.grubhub.com/restaurant/palermo-pizza--pasta-350-15th-ave-e-seattle/77301',
+    ubereats: 'https://www.ubereats.com/store/palermo/RkEII029QNmKQDTeUT2ikw',
+  },
+  'beardslee-public-house-bothell': {
+    doordash: 'https://www.doordash.com/store/beardslee-public-house-bothell-27990865/',
+    grubhub: 'https://www.grubhub.com/restaurant/beardslee-public-house-19116-beardslee-blvd-bothell/1400972',
+    ubereats: 'https://www.ubereats.com/store/beardslee-public-house-19116-beardslee-blvd-bothell/dDFbAFiZUle5AEDSJGSZnA',
+  },
+  'theary-cambodian-foods-federal-way': {},
+};
+
+const ORDER = ['doordash', 'grubhub', 'ubereats'];
+
+// The delivery apps to offer for a spot: [{ key, label, url }]. Empty when the
+// spot doesn't do app delivery.
 export function deliveryLinks(r) {
-  return DELIVERY_APPS.map((a) => ({ ...a, url: a.link(r) }));
+  const entry = DELIVERY[r.id];
+  const keys = entry
+    ? ORDER.filter((k) => entry[k])
+    : ORDER; // unverified → best-effort search links for all three
+  return keys.map((k) => ({
+    key: k,
+    label: LABEL[k],
+    url: typeof entry?.[k] === 'string' ? entry[k] : SEARCH[k](r),
+  }));
+}
+
+// True when we know the spot takes no aggregator orders (own site only).
+export function pickupOnly(r) {
+  const entry = DELIVERY[r.id];
+  return Boolean(entry) && ORDER.every((k) => !entry[k]);
 }
 
 // Order-ahead on the restaurant's own site, when they have one.
