@@ -35,9 +35,9 @@
 }
 
 .brand-text h1 {
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.015em;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .brand-text p {
@@ -1982,13 +1982,13 @@
 }
 
 .poster {
-  flex: 0 0 208px;
+  flex: 0 0 210px;
   scroll-snap-align: start;
   display: flex;
   flex-direction: column;
   text-align: left;
   padding: 0;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line-strong);
   border-radius: var(--r-md);
   background: var(--card);
   overflow: hidden;
@@ -2001,27 +2001,43 @@
   box-shadow: var(--shadow-md), var(--edge);
 }
 
-.poster-top {
+.poster-media {
   position: relative;
-  height: 92px;
-  padding: 8px;
+  height: 112px;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
-.poster-top::after {
+.poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.poster-emoji {
+  font-size: 40px;
+  filter: saturate(1.1) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.4));
+}
+
+.poster-media::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.28) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.32) 0%, rgba(0, 0, 0, 0) 38%);
+  pointer-events: none;
 }
 
 .poster-badges {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  right: 7px;
   display: flex;
   gap: 4px;
   flex-wrap: wrap;
-  position: relative;
   z-index: 1;
 }
 
@@ -2029,7 +2045,7 @@
   font-size: 10px;
   font-weight: 700;
   color: #fff;
-  background: rgba(0, 0, 0, 0.32);
+  background: rgba(0, 0, 0, 0.5);
   border-radius: var(--r-pill);
   padding: 2px 7px;
   backdrop-filter: blur(2px);
@@ -2041,18 +2057,18 @@
 }
 
 .poster-safety {
-  position: relative;
-  z-index: 1;
   align-self: flex-start;
-  font-size: 10.5px;
+  font-size: 9.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: #fff;
+  letter-spacing: 0.5px;
+  border: 1px solid;
+  border-radius: 5px;
+  padding: 1px 6px;
 }
 
 .poster-body {
-  padding: 10px 11px 12px;
+  padding: 9px 11px 11px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -2060,10 +2076,9 @@
 }
 
 .poster-name {
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 600;
-  font-size: 15px;
-  line-height: 1.2;
+  font-weight: 700;
+  font-size: 14.5px;
+  line-height: 1.22;
   letter-spacing: -0.01em;
 }
 
@@ -2154,7 +2169,7 @@
 
 .points-big,
 .stat-grid b {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: var(--font);
   letter-spacing: -0.01em;
 }
 

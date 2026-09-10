@@ -2,17 +2,34 @@ import { useMemo, useRef } from 'react';
 import { buildRails } from '../lib/browse';
 import { SAFETY_META, priceLabel } from '../lib/format';
 import { formatDistance } from '../lib/geo';
+import { photoFor, cuisineEmoji } from '../data/cardPhotos';
 
 function PosterCard({ r, onOpen }) {
   const meta = SAFETY_META[r.safetyLevel] || SAFETY_META['gf-menu'];
+  const photo = photoFor(r);
   return (
-    <button className="poster" onClick={() => onOpen(r.id)}>
+    <button
+      className="poster"
+      style={{ borderColor: meta.color }}
+      onClick={() => onOpen(r.id)}
+    >
       <span
-        className="poster-top"
-        style={{
-          background: `linear-gradient(150deg, ${meta.color} 0%, ${meta.color}99 100%)`,
-        }}
+        className="poster-media"
+        style={
+          photo
+            ? undefined
+            : {
+                background: `linear-gradient(150deg, ${meta.color}2e 0%, ${meta.color}14 100%)`,
+              }
+        }
       >
+        {photo ? (
+          <img className="poster-img" src={photo} alt="" loading="lazy" />
+        ) : (
+          <span className="poster-emoji" aria-hidden>
+            {cuisineEmoji(r.cuisine)}
+          </span>
+        )}
         <span className="poster-badges">
           {r.spotlight ? (
             <span className="poster-flag poster-flag-hero">★ Local hero</span>
@@ -21,9 +38,14 @@ function PosterCard({ r, onOpen }) {
           ) : null}
           {r.lateNight ? <span className="poster-flag">🌙 Late</span> : null}
         </span>
-        <span className="poster-safety">{meta.short}</span>
       </span>
       <span className="poster-body">
+        <span
+          className="poster-safety"
+          style={{ color: meta.color, borderColor: `${meta.color}66` }}
+        >
+          {meta.short}
+        </span>
         <span className="poster-name">{r.name}</span>
         <span className="poster-meta">
           {r.neighborhood} · {r.cuisine[0]}
