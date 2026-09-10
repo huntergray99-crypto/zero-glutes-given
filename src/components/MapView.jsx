@@ -11,11 +11,12 @@ import { SAFETY_META } from '../lib/format';
 
 const SEATTLE_CENTER = [47.615, -122.33];
 
-// A free MapTiler key (VITE_MAPTILER_KEY, cloud.maptiler.com) turns Light and
-// Dark into MapTiler's Streets styles — the polished Apple/Google-Maps look.
-// Without a key we fall back to OpenStreetMap (light) and Esri Dilate (dark),
-// both no-key.
-const MT = import.meta.env.VITE_MAPTILER_KEY || '';
+// MapTiler Streets — the polished Apple/Google-Maps look. This is a client key
+// (it ships in the bundle, like every web map key); lock it to the site's
+// domain in the MapTiler dashboard when convenient. VITE_MAPTILER_KEY in .env
+// overrides it for local dev.
+const MT =
+  import.meta.env.VITE_MAPTILER_KEY || 'e3R1Xi8hUaMjE7ZNHgD1';
 const r2x = typeof window !== 'undefined' && window.devicePixelRatio > 1 ? '@2x' : '';
 
 const BASEMAPS = {
