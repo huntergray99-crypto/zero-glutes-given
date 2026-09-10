@@ -1,7 +1,7 @@
 # Store listing copy — Zero Glutes Given
 
-Live app: https://zeroglutes.culebramaps.com
-Privacy policy: https://zeroglutes.culebramaps.com/privacy.html
+Live app: https://zeroglutesgiven.culebramaps.com
+Privacy policy: https://zeroglutesgiven.culebramaps.com/privacy.html
 Category (both stores): Food & Drink
 Content rating: Everyone / 4+
 Contact email: huntergray99@gmail.com  *(consider a dedicated address — this is public on both listings)*
@@ -119,12 +119,12 @@ celiac,gluten free,gluten-free,GF,coeliac,restaurants,dining,seattle,fryer,cross
 
 **Support URL**
 ```
-https://zeroglutes.culebramaps.com
+https://zeroglutesgiven.culebramaps.com
 ```
 
 **Marketing URL** (optional)
 ```
-https://zeroglutes.culebramaps.com
+https://zeroglutesgiven.culebramaps.com
 ```
 
 **App Privacy answers (App Store Connect)**
