@@ -1666,6 +1666,24 @@
   background: rgba(52, 199, 123, 0.14);
 }
 
+.hood-chip-all {
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.hood-region {
+  margin-top: 14px;
+}
+
+.hood-region-name {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
 .hood-chip-count {
   color: var(--muted);
   font-weight: 400;

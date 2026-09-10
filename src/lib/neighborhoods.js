@@ -7,6 +7,26 @@ function avg(arr) {
   return arr.reduce((s, x) => s + x, 0) / arr.length;
 }
 
+// Metro regions. Anything not listed falls back to "Seattle" so new Seattle
+// neighborhoods keep working without a code change.
+export const REGION_ORDER = ['Seattle', 'Eastside', 'North', 'South'];
+
+const REGION_BY_HOOD = {
+  Bellevue: 'Eastside',
+  Kirkland: 'Eastside',
+  Redmond: 'Eastside',
+  'Mercer Island': 'Eastside',
+  Bothell: 'North',
+  'Federal Way': 'South',
+  Renton: 'South',
+  Kent: 'South',
+  Tukwila: 'South',
+};
+
+export function regionForHood(name) {
+  return REGION_BY_HOOD[name] || 'Seattle';
+}
+
 export const NEIGHBORHOODS = (() => {
   const groups = new Map();
   for (const r of restaurants) {
@@ -19,6 +39,7 @@ export const NEIGHBORHOODS = (() => {
   return [...groups.values()]
     .map((g) => ({
       name: g.name,
+      region: regionForHood(g.name),
       count: g.lats.length,
       center: [avg(g.lats), avg(g.lngs)],
       bounds: [
@@ -28,6 +49,13 @@ export const NEIGHBORHOODS = (() => {
     }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 })();
+
+// NEIGHBORHOODS grouped by region, in REGION_ORDER, each group still sorted by
+// spot count (inherited from the NEIGHBORHOODS sort above).
+export const REGIONS = REGION_ORDER.map((region) => ({
+  region,
+  hoods: NEIGHBORHOODS.filter((n) => n.region === region),
+})).filter((g) => g.hoods.length);
 
 export function neighborhoodSpotIds(name) {
   return restaurants.filter((r) => r.neighborhood === name).map((r) => r.id);

@@ -1,4 +1,4 @@
-import { NEIGHBORHOODS } from '../lib/neighborhoods';
+import { NEIGHBORHOODS, REGIONS } from '../lib/neighborhoods';
 
 const TOTAL = NEIGHBORHOODS.reduce((n, h) => n + h.count, 0);
 
@@ -16,7 +16,7 @@ export default function NeighborhoodPicker({
       className="hood-scrim"
       onClick={dismissable ? onClose : undefined}
       role="dialog"
-      aria-label="Choose a neighborhood"
+      aria-label="Choose an area"
     >
       <div className="hood-modal" onClick={(e) => e.stopPropagation()}>
         {dismissable ? (
@@ -27,8 +27,8 @@ export default function NeighborhoodPicker({
 
         <h2>Where are you eating?</h2>
         <p className="muted">
-          Pick a neighborhood — the map zooms to the celiac-safe spots there. You
-          can switch or go back to all of Seattle anytime.
+          Pick an area — the map zooms to the celiac-safe spots there. You can
+          switch or go back to the full map anytime.
         </p>
 
         <button
@@ -40,30 +40,36 @@ export default function NeighborhoodPicker({
         </button>
         {locateDenied ? (
           <p className="rf-note rf-note-warn">
-            Location is blocked — pick a neighborhood below, or enable location in
-            your browser settings.
+            Location is blocked — pick an area below, or enable location in your
+            browser settings.
           </p>
         ) : null}
 
-        <div className="hood-grid">
-          <button
-            className={`hood-chip ${!current ? 'on' : ''}`}
-            onClick={() => onPick(null)}
-          >
-            <span className="hood-chip-name">All Seattle</span>
-            <span className="hood-chip-count">{TOTAL}</span>
-          </button>
-          {NEIGHBORHOODS.map((n) => (
-            <button
-              key={n.name}
-              className={`hood-chip ${current === n.name ? 'on' : ''}`}
-              onClick={() => onPick(n.name)}
-            >
-              <span className="hood-chip-name">{n.name}</span>
-              <span className="hood-chip-count">{n.count}</span>
-            </button>
-          ))}
-        </div>
+        <button
+          className={`hood-chip hood-chip-all ${!current ? 'on' : ''}`}
+          onClick={() => onPick(null)}
+        >
+          <span className="hood-chip-name">All spots</span>
+          <span className="hood-chip-count">{TOTAL}</span>
+        </button>
+
+        {REGIONS.map((group) => (
+          <div key={group.region} className="hood-region">
+            <h3 className="hood-region-name">{group.region}</h3>
+            <div className="hood-grid">
+              {group.hoods.map((n) => (
+                <button
+                  key={n.name}
+                  className={`hood-chip ${current === n.name ? 'on' : ''}`}
+                  onClick={() => onPick(n.name)}
+                >
+                  <span className="hood-chip-name">{n.name}</span>
+                  <span className="hood-chip-count">{n.count}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

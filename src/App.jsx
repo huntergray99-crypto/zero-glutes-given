@@ -320,7 +320,7 @@ export default function App() {
           </span>
           <div className="brand-text">
             <h1>Zero Glutes Given</h1>
-            <p>Celiac-safe dining in Seattle</p>
+            <p>Celiac-safe dining · Seattle &amp; the Eastside</p>
           </div>
         </div>
 
@@ -353,7 +353,7 @@ export default function App() {
           title="Choose a neighborhood"
         >
           <span className="hood-pin">📍</span>
-          <span className="hood-bar-name">{hood || 'All Seattle'}</span>
+          <span className="hood-bar-name">{hood || 'All spots'}</span>
           <span className="hood-bar-count">
             {searching
               ? `${filtered.length} match${filtered.length === 1 ? '' : 'es'}`
@@ -363,7 +363,7 @@ export default function App() {
         </button>
         {hood ? (
           <button className="hood-bar-clear" onClick={() => applyHood(null)}>
-            All Seattle
+            All spots
           </button>
         ) : null}
       </div>
