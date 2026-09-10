@@ -2027,8 +2027,19 @@
   color: var(--ink);
 }
 
+.dcard-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dcard-menu-btn {
+  padding: 6px 12px;
+  font-size: 12.5px;
+}
+
 .dcard-menu-toggle {
-  align-self: flex-start;
   border: none;
   background: none;
   color: var(--green-bright);

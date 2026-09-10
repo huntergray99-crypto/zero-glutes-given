@@ -47,6 +47,54 @@ export function orderDirect(r) {
   return DIRECT_ORDER[r.id] || null;
 }
 
+// The restaurant's own menu page, verified Sept 2026. Where a spot has an
+// orderDirect link that *is* a menu (Toast/Square/Slice), that's used instead.
+const MENU_URL = {
+  'the-angry-beaver': 'https://theangrybeaverseattle.com/food-menu',
+  'ghostfish-brewing': 'https://ghostfishbrewing.com/taproom',
+  'a-stir': 'https://astirseattle.com/food-menu',
+  'the-chicken-supply': 'https://thechickensupply.com/the-goods/',
+  'askatu-bakery': 'https://liberatedfoods.com/food-menu',
+  'yeobo-cafe': 'https://www.yeobosea.com/menu',
+  'esters-enoteca': 'https://www.estersenoteca.com/menus',
+  'palermo-pizza-pasta': 'https://www.mypalermopizza.com/#menu',
+  'cafe-flora': 'https://florarestaurantgroup.com/restaurant/cafe-flora-seattle/',
+  'musang-beacon-hill': 'https://www.musangseattle.com/menus',
+  'bamboo-sushi-uvillage': 'https://bamboosushi.com/location/university-village/menu',
+  'jacks-bbq': 'https://jacksbbq.com/menu/',
+  'taylor-shellfish-melrose':
+    'https://www.taylorshellfishfarms.com/locations/capitol-hill-melrose',
+  'marination-ma-kai': 'https://marinationmobile.com/menu',
+  'ba-bar-capitol-hill': 'https://www.babarseattle.com/capitol-hill/menu/',
+  'portage-bay-cafe-ballard': 'https://www.portagebaycafe.com/menu',
+  'arayas-place-u-district': 'https://www.arayasplace.com/our-menu',
+  'fonda-la-catrina': 'https://www.fondalacatrina.com/menu',
+  'mioposto-mount-baker': 'https://www.miopostopizza.com/menus',
+  'nue-capitol-hill': 'https://www.nueseattle.com/online-menus',
+  'sweet-alchemy-u-district': 'https://sweetalchemyicecreamery.com/flavors/',
+  'harvest-beat': 'https://www.harvestbeat.com/',
+  'cactus-madison-park': 'https://www.cactusrestaurants.com/menus',
+  'cantina-monarca-bellevue': 'https://menu.cantinamonarca.com/',
+  'cafe-organique-kirkland': 'https://www.cafeorganique.us/menu',
+  'sano-cafe-mercer-island': 'https://www.thesanocafe.com/menu',
+  'beardslee-public-house-bothell': 'https://beardsleeph.com/food-menu/',
+};
+
+// Best link to view the menu: the spot's own ordering page if that shows the
+// menu, else its menu page, else its site. { url, label } or null.
+export function menuLink(r) {
+  const direct = DIRECT_ORDER[r.id];
+  if (direct) {
+    return {
+      url: direct.url,
+      label: direct.platform === 'their site' ? 'Menu' : `Menu (${direct.platform})`,
+    };
+  }
+  if (MENU_URL[r.id]) return { url: MENU_URL[r.id], label: 'Full menu' };
+  if (r.website) return { url: r.website, label: 'Their site' };
+  return null;
+}
+
 function q(r) {
   return encodeURIComponent(
     [r.name, r.neighborhood, 'Seattle'].filter(Boolean).join(' ')

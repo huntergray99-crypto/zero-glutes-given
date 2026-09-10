@@ -3,7 +3,7 @@ import { SAFETY_META, priceLabel } from '../lib/format';
 import { haversineMiles, formatDistance } from '../lib/geo';
 import { photoFor } from '../data/cardPhotos';
 import { NEIGHBORHOODS, nearestNeighborhood } from '../lib/neighborhoods';
-import { deliveryLinks, orderDirect, websiteOrder } from '../lib/order';
+import { deliveryLinks, menuLink } from '../lib/order';
 
 const SEEN_KEY = 'zgg.delivery.seen';
 const MODE_KEY = 'zgg.delivery.mode';
@@ -74,8 +74,7 @@ function DeliveryCard({ r, distMi, onOpen, onOrder }) {
   const meta = SAFETY_META[r.safetyLevel] || SAFETY_META['gf-menu'];
   const [showMenu, setShowMenu] = useState(false);
   const photo = photoFor(r);
-  const direct = orderDirect(r);
-  const site = websiteOrder(r);
+  const menu = menuLink(r);
   const links = deliveryLinks(r);
 
   return (
@@ -106,29 +105,29 @@ function DeliveryCard({ r, distMi, onOpen, onOrder }) {
           </p>
         ) : null}
 
-        <button
-          className="dcard-menu-toggle"
-          onClick={() => setShowMenu((s) => !s)}
-          aria-expanded={showMenu}
-        >
-          {showMenu ? 'Hide menus' : 'See the menu'} ▾
-        </button>
+        <div className="dcard-actions">
+          {menu ? (
+            <a
+              className="btn btn-ghost dcard-menu-btn"
+              href={menu.url}
+              target="_blank"
+              rel="noreferrer"
+            >
+              📋 {menu.label}
+            </a>
+          ) : null}
+          <button
+            className="dcard-menu-toggle"
+            onClick={() => setShowMenu((s) => !s)}
+            aria-expanded={showMenu}
+          >
+            {showMenu ? 'Hide apps' : 'Menu on the apps'} ▾
+          </button>
+        </div>
         {showMenu ? (
           <div className="dcard-menu">
-            <p className="muted">Browse the full menu before you order:</p>
+            <p className="muted">Same spot on the delivery apps:</p>
             <div className="dcard-menu-links">
-              {direct ? (
-                <a href={direct.url} target="_blank" rel="noreferrer">
-                  {direct.platform === 'their site'
-                    ? 'Their site'
-                    : direct.platform}{' '}
-                  menu
-                </a>
-              ) : site ? (
-                <a href={site} target="_blank" rel="noreferrer">
-                  Their site
-                </a>
-              ) : null}
               {links.map((a) => (
                 <a key={a.key} href={a.url} target="_blank" rel="noreferrer">
                   {a.label}
