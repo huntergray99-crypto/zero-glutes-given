@@ -24,7 +24,7 @@ function PosterCard({ r, onOpen }) {
         }
       >
         {photo ? (
-          <img className="poster-img" src={photo} alt="" loading="lazy" />
+          <img className="poster-img" src={photo} alt="" decoding="async" />
         ) : (
           <span className="poster-emoji" aria-hidden>
             {cuisineEmoji(r.cuisine)}
