@@ -2,7 +2,8 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const base = process.env.GITHUB_ACTIONS ? '/zero-glutes-given/' : '/'
+// Served from the root of zeroglutes.culebramaps.com (see public/CNAME).
+const base = '/'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -13,7 +14,7 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       workbox: {
-        // cache the Esri map tiles so a revisited area still renders offline
+        // cache map tiles so a revisited area still renders offline
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/server\.arcgisonline\.com\/.*/i,
@@ -21,6 +22,15 @@ export default defineConfig({
             options: {
               cacheName: 'esri-tiles',
               expiration: { maxEntries: 800, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/(api\.maptiler\.com|[a-c]\.tile\.openstreetmap\.org|tile\.openstreetmap\.org)\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'basemap-tiles',
+              expiration: { maxEntries: 1200, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
