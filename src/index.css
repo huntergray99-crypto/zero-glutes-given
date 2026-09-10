@@ -122,6 +122,27 @@ a {
   font: inherit;
 }
 
+/* light basemap: pale ground while tiles load, and readable tooltips */
+.map-light .leaflet-container {
+  background: #e9e5dd;
+}
+
+.map-light .leaflet-tooltip {
+  background: #fff;
+  border-color: rgba(0, 0, 0, 0.14);
+  color: #1c1a17;
+}
+
+.map-light .leaflet-tooltip-top::before {
+  border-top-color: rgba(0, 0, 0, 0.14);
+}
+
+.map-light .leaflet-bar a {
+  background: #fff;
+  color: #1c1a17;
+  border-bottom-color: rgba(0, 0, 0, 0.12);
+}
+
 .leaflet-bar {
   border: none !important;
   box-shadow: var(--shadow-sm) !important;

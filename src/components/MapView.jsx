@@ -11,7 +11,8 @@ import { SAFETY_META } from '../lib/format';
 
 const SEATTLE_CENTER = [47.615, -122.33];
 
-// All tiles are Esri ArcGIS Online — free, no API key, consistent look.
+// Free, no-API-key raster tiles. Dark = Esri Dark Gray Canvas; Light = CARTO
+// Voyager (colored, close to Google/Apple Maps light); Satellite = Esri imagery.
 const BASEMAPS = {
   dark: {
     label: 'Dark',
@@ -21,6 +22,15 @@ const BASEMAPS = {
       'Tiles &copy; <a href="https://www.esri.com/">Esri</a> — Esri, HERE, Garmin, &copy; OpenStreetMap contributors',
     maxZoom: 19,
     maxNativeZoom: 16,
+  },
+  light: {
+    label: 'Light',
+    // Esri World Street Map — colored streets, parks, and water, labels baked in
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+    attribution:
+      'Tiles &copy; <a href="https://www.esri.com/">Esri</a> — Esri, HERE, Garmin, &copy; OpenStreetMap contributors, and the GIS user community',
+    maxZoom: 19,
+    maxNativeZoom: 19,
   },
   satellite: {
     label: 'Satellite',
@@ -37,6 +47,7 @@ const OVERLAYS = {
   dark: [
     'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
   ],
+  light: [],
   satellite: [
     'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',
     'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
@@ -259,13 +270,14 @@ export default function MapView({
         center={SEATTLE_CENTER}
         zoom={12}
         scrollWheelZoom
-        className="map"
+        className={`map map-${basemap}`}
         preferCanvas
       >
         <TileLayer
           key={basemap}
           url={cfg.url}
           attribution={cfg.attribution}
+          subdomains={cfg.subdomains || 'abc'}
           maxZoom={cfg.maxZoom}
           maxNativeZoom={cfg.maxNativeZoom}
         />
