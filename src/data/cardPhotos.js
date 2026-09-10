@@ -1,13 +1,11 @@
-// Card photography for the browse rails.
-//
-// We don't have a licensed photo of every restaurant's food yet (that needs a
-// Places/Yelp image API or the user-uploaded photo feature). Until then these
-// are representative dish photos from Wikimedia Commons, chosen by each spot's
-// primary cuisine, served through the stable Special:FilePath redirect so we
-// don't have to track upload hashes.
-//
-// To use a real photo for one spot, add an entry to RESTAURANT_PHOTOS keyed by
-// its id — it wins over the cuisine default.
+// Card photography for the browse rails. Priority per spot:
+//   1. spotPhotos.js  — a real photo of that restaurant (scripts/fetch-photos.mjs)
+//   2. RESTAURANT_PHOTOS below — manual override
+//   3. a representative dish photo for the spot's primary cuisine (Wikimedia
+//      Commons, via the stable Special:FilePath redirect)
+//   4. a cuisine emoji, if even the image fails to load
+
+import { SPOT_PHOTOS } from './spotPhotos';
 
 const commons = (file, width = 640) =>
   `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(
@@ -59,8 +57,14 @@ function firstMatch(cuisines, table) {
 }
 
 export function photoFor(r) {
+  if (SPOT_PHOTOS[r.id]?.file) return SPOT_PHOTOS[r.id].file;
   if (RESTAURANT_PHOTOS[r.id]) return RESTAURANT_PHOTOS[r.id];
   return firstMatch(r.cuisine || [], CUISINE_PHOTO);
+}
+
+// Attribution for a spot's real photo, when it has one ({ credit, yelpUrl }).
+export function photoCredit(r) {
+  return SPOT_PHOTOS[r.id]?.file ? SPOT_PHOTOS[r.id] : null;
 }
 
 export function cuisineEmoji(cuisines = []) {

@@ -1,0 +1,155 @@
+// Pull one real photo per restaurant from the Yelp Fusion API, resize it, and
+// save it under public/spots/. Regenerates src/data/spotPhotos.js.
+//
+//   YELP_API_KEY=xxxx node scripts/fetch-photos.mjs           # all missing
+//   YELP_API_KEY=xxxx node scripts/fetch-photos.mjs --force   # re-fetch all
+//   YELP_API_KEY=xxxx node scripts/fetch-photos.mjs the-angry-beaver  # just one
+//
+// Get a free key at https://www.yelp.com/developers/v3/manage_app (no billing).
+// Yelp Fusion allows 5000 calls/day; this makes 2 per restaurant.
+//
+// Photos are resized to 640px webp and committed to the repo, so the running
+// app makes zero API calls and needs no key. Yelp asks that displayed content
+// link back to the business page — spotPhotos.js keeps each `yelpUrl` for that.
+
+import { writeFile, mkdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import sharp from 'sharp';
+import { restaurants } from '../src/data/restaurants.js';
+
+const KEY = process.env.YELP_API_KEY;
+const args = process.argv.slice(2);
+const FORCE = args.includes('--force');
+const ONLY = args.filter((a) => !a.startsWith('--'));
+
+const OUT_DIR = path.resolve('public/spots');
+const DATA_FILE = path.resolve('src/data/spotPhotos.js');
+
+// Which of a business's (up to 3) Yelp photos to use, when [0] isn't the best
+// food shot. Tune after a first run.
+const PHOTO_INDEX = {
+  // 'some-id': 1,
+};
+
+// Hand-set photos that shouldn't be fetched (already good, or Yelp has none).
+const MANUAL = {
+  'askatu-bakery': {
+    file: '/spots/askatu-bakery.webp',
+    remote:
+      'https://upload.wikimedia.org/wikipedia/commons/e/e9/Seattle%2C_Washington%2C_U.S._%28November_2022%29_-_170.jpg',
+    credit: 'Wikimedia Commons',
+  },
+  'frankie-and-jos': {
+    file: '/spots/frankie-and-jos.webp',
+    remote:
+      'https://upload.wikimedia.org/wikipedia/commons/f/fe/Seattle%2C_April_2024_-_27.jpg',
+    credit: 'Wikimedia Commons',
+  },
+  'tacos-chukis-broadway': {
+    file: '/spots/tacos-chukis-broadway.webp',
+    remote:
+      'https://upload.wikimedia.org/wikipedia/commons/c/c1/Seattle_in_October_2022_-_177_%28cropped%29.jpg',
+    credit: 'Wikimedia Commons',
+  },
+};
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function yelp(url) {
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${KEY}` } });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText} — ${url}`);
+  return res.json();
+}
+
+async function matchBusiness(r) {
+  const [, streetAndCity] = r.address.split(/,(.+)/);
+  const address1 = r.address.split(',')[0].trim();
+  const p = new URLSearchParams({
+    name: r.name,
+    address1,
+    city: (streetAndCity || '').split(',')[0]?.trim() || 'Seattle',
+    state: 'WA',
+    country: 'US',
+    latitude: String(r.lat),
+    longitude: String(r.lng),
+    match_threshold: 'default',
+  });
+  const data = await yelp(`https://api.yelp.com/v3/businesses/matches?${p}`);
+  return data.businesses?.[0] || null;
+}
+
+async function saveImage(remoteUrl, id) {
+  const res = await fetch(remoteUrl);
+  if (!res.ok) throw new Error(`image ${res.status} — ${remoteUrl}`);
+  const buf = Buffer.from(await res.arrayBuffer());
+  const outFile = path.join(OUT_DIR, `${id}.webp`);
+  await sharp(buf)
+    .resize(640, 420, { fit: 'cover', position: 'attention' })
+    .webp({ quality: 78 })
+    .toFile(outFile);
+  return `/spots/${id}.webp`;
+}
+
+async function main() {
+  await mkdir(OUT_DIR, { recursive: true });
+  const spots = restaurants.filter((r) => (ONLY.length ? ONLY.includes(r.id) : true));
+  const out = {};
+
+  for (const r of spots) {
+    const existing = existsSync(path.join(OUT_DIR, `${r.id}.webp`));
+    if (MANUAL[r.id]) {
+      try {
+        const file = await saveImage(MANUAL[r.id].remote, r.id);
+        out[r.id] = { file, credit: MANUAL[r.id].credit };
+        console.log(`✓ ${r.id} (manual)`);
+      } catch (e) {
+        console.warn(`✗ ${r.id} manual — ${e.message}`);
+      }
+      continue;
+    }
+    if (existing && !FORCE) {
+      console.log(`· ${r.id} (have it)`);
+      continue;
+    }
+    try {
+      const biz = await matchBusiness(r);
+      if (!biz) {
+        console.warn(`✗ ${r.id} — no Yelp match`);
+        continue;
+      }
+      const detail = await yelp(`https://api.yelp.com/v3/businesses/${biz.id}`);
+      const photos = detail.photos?.length ? detail.photos : [detail.image_url];
+      const idx = Math.min(PHOTO_INDEX[r.id] ?? 0, photos.length - 1);
+      const src = photos[idx];
+      if (!src) {
+        console.warn(`✗ ${r.id} — no photo`);
+        continue;
+      }
+      const file = await saveImage(src, r.id);
+      out[r.id] = { file, credit: 'Yelp', yelpUrl: detail.url };
+      console.log(`✓ ${r.id} — ${detail.name}`);
+      await sleep(250);
+    } catch (e) {
+      console.warn(`✗ ${r.id} — ${e.message}`);
+    }
+  }
+
+  // Merge with anything already in spotPhotos.js so single-id runs don't wipe it.
+  let prev = {};
+  try {
+    const mod = await import(`${DATA_FILE}?t=${Date.now()}`);
+    prev = mod.SPOT_PHOTOS || {};
+  } catch {
+    /* first run */
+  }
+  const merged = { ...prev, ...out };
+  const body =
+    '// Generated by scripts/fetch-photos.mjs — do not edit by hand.\n' +
+    '// Real per-restaurant photos; falls back to a cuisine photo when a spot is missing.\n\n' +
+    `export const SPOT_PHOTOS = ${JSON.stringify(merged, null, 2)};\n`;
+  await writeFile(DATA_FILE, body);
+  console.log(`\nWrote ${Object.keys(merged).length} entries to src/data/spotPhotos.js`);
+}
+
+main();
