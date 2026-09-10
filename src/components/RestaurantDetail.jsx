@@ -19,6 +19,7 @@ import { haversineMiles, formatDistance, walkMinutes } from '../lib/geo';
 import {
   doordashSearch,
   uberEatsSearch,
+  orderDirect,
   rideUrl,
   isLateNow,
 } from '../lib/order';
@@ -65,6 +66,7 @@ export default function RestaurantDetail({
   const posts = allPosts.filter((p) => p.restaurantId === r.id);
   const late = isLateNow();
   const showDelivery = !r.honorableMention && r.order !== false;
+  const direct = orderDirect(r);
 
   // recompute on flash so the button re-locks right after a check-in
   void flash;
@@ -254,6 +256,17 @@ export default function RestaurantDetail({
         {showDelivery ? (
           <div className="detail-block">
             <h3>Order &amp; pickup</h3>
+            {direct ? (
+              <a
+                href={direct.url}
+                target="_blank"
+                rel="noreferrer"
+                className="btn order-direct"
+              >
+                🍽 Order direct
+                <span className="btn-sub"> · {direct.platform}</span>
+              </a>
+            ) : null}
             <div className="detail-links">
               <a
                 href={doordashSearch(r)}
@@ -261,7 +274,7 @@ export default function RestaurantDetail({
                 rel="noreferrer"
                 className="btn btn-ghost"
               >
-                Search DoorDash
+                DoorDash
               </a>
               <a
                 href={uberEatsSearch(r)}
@@ -269,9 +282,9 @@ export default function RestaurantDetail({
                 rel="noreferrer"
                 className="btn btn-ghost"
               >
-                Search Uber Eats
+                Uber Eats
               </a>
-              {r.website ? (
+              {r.website && !direct ? (
                 <a
                   href={r.website}
                   target="_blank"
@@ -283,8 +296,9 @@ export default function RestaurantDetail({
               ) : null}
             </div>
             <p className="rf-note">
-              Delivery kitchens can differ from the dining room — reconfirm your
-              celiac needs in the order notes.
+              {direct
+                ? 'Ordering direct keeps more of the money with the restaurant and usually gives you a notes field to restate your celiac needs. Any off-site kitchen can differ from the dining room — reconfirm either way.'
+                : 'Delivery kitchens can differ from the dining room — reconfirm your celiac needs in the order notes.'}
             </p>
           </div>
         ) : null}
