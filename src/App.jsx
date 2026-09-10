@@ -460,7 +460,10 @@ export default function App() {
           </button>
           <button
             className={`filter-toggle ${showFilters ? 'on' : ''}`}
-            onClick={() => setShowFilters((s) => !s)}
+            onClick={() => {
+              setShowFilters((s) => !s);
+              if (mobileView === 'map') setMobileView('list');
+            }}
           >
             Filters
           </button>

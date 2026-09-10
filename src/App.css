@@ -1848,6 +1848,76 @@ button.map-legend:hover {
     display: flex;
   }
 
+  /* compact header — reclaim vertical space */
+  .topbar {
+    gap: 8px 10px;
+    padding: 9px 13px;
+  }
+
+  .brand {
+    margin-right: auto;
+    gap: 9px;
+  }
+
+  .brand-mark svg {
+    width: 25px;
+    height: 25px;
+  }
+
+  .brand-text h1 {
+    font-size: 17px;
+  }
+
+  .brand-text p {
+    display: none;
+  }
+
+  .searchbox {
+    order: 5;
+    flex-basis: 100%;
+    max-width: none;
+    margin-left: 0;
+  }
+
+  .feed-btn,
+  .points-pill {
+    padding: 5px 11px;
+    font-size: 12px;
+  }
+
+  .points-pill strong {
+    font-size: 13px;
+  }
+
+  .points-pill-level {
+    display: none;
+  }
+
+  .navtab {
+    padding: 10px 12px 9px;
+  }
+
+  .hood-bar {
+    padding: 6px 12px;
+  }
+
+  .mobile-toggle {
+    padding: 7px 10px;
+    gap: 7px;
+  }
+
+  .mobile-toggle button {
+    padding: 8px;
+  }
+
+  .rail-head-actions .rail-arrows {
+    display: none;
+  }
+
+  .rail-seeall {
+    padding: 8px 4px;
+  }
+
   .layout {
     position: relative;
   }
