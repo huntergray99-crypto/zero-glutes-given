@@ -1,22 +1,62 @@
-:root {
-  /* Apple-Maps-at-night dark palette */
-  --green: #1f8b53;
-  --green-bright: #34c77b;
-  --green-dark: #14663c;
-  --ink: #e7ebee;
-  --muted: #9aa4ad;
-  --line: #2b3138;
-  --bg: #0f1215;
-  --card: #191d21;
-  --card-2: #22272c;
-  --warn: #ff6b5e;
-  --warn-bg: #3a1f1c;
+/* Zero Glutes Given — warm dark theme.
+   Think cand-lit dinner, not cold OS dark mode: warm near-black grounds,
+   layered surfaces that actually step in tone, soft real shadows, a honey
+   accent alongside the green, and a warm serif for anything that speaks. */
 
-  font: 16px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
-    Arial, sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap');
+
+:root {
+  /* greens */
+  --green: #2c9760;
+  --green-bright: #46d489;
+  --green-dark: #17643d;
+
+  /* honey accent — featured spots, stars, highlights */
+  --amber: #e7a94e;
+  --amber-soft: #f0c583;
+
+  /* text on dark */
+  --ink: #f3eee4;
+  --muted: #a79d8c;
+
+  /* warm layered surfaces */
+  --bg: #15120e;
+  --card: #1e1a15;
+  --card-2: #272119;
+  --card-3: #322a20;
+  --line: rgba(233, 208, 160, 0.11);
+  --line-strong: rgba(233, 208, 160, 0.2);
+
+  /* semantic */
+  --warn: #ff7a63;
+  --warn-bg: #3a201b;
+
+  /* elevation — warm-tinted, layered */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.22);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.38), 0 14px 34px rgba(0, 0, 0, 0.32);
+  --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.6);
+  --ring: 0 0 0 3px rgba(70, 212, 137, 0.28);
+
+  /* a subtle top highlight that reads as a lit edge on raised surfaces */
+  --edge: inset 0 1px 0 rgba(255, 244, 224, 0.05);
+
+  /* radii */
+  --r-sm: 9px;
+  --r-md: 13px;
+  --r-lg: 18px;
+  --r-pill: 999px;
+
+  /* gradients */
+  --grad-green: linear-gradient(180deg, #33a76c 0%, #23824f 100%);
+  --grad-header: linear-gradient(165deg, #2f9e64 0%, #1f7749 62%, #1b6b42 100%);
+  --grad-amber: linear-gradient(180deg, #edb562 0%, #dc9a3c 100%);
+
+  font: 400 16px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
   color: var(--ink);
   color-scheme: dark;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 * {
@@ -32,12 +72,22 @@ body,
 
 body {
   background: var(--bg);
+  /* a faint warm glow from the top so the ground isn't a dead flat fill */
+  background-image: radial-gradient(
+    120% 60% at 50% -10%,
+    rgba(66, 158, 105, 0.1) 0%,
+    rgba(21, 18, 14, 0) 60%
+  );
+  background-attachment: fixed;
 }
 
 h1,
 h2,
 h3 {
   margin: 0;
+  font-family: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 p {
@@ -53,9 +103,26 @@ a {
   color: var(--green-bright);
 }
 
-/* Leaflet tweaks for dark UI */
+::selection {
+  background: rgba(70, 212, 137, 0.28);
+}
+
+/* consistent focus ring for keyboard users */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: var(--r-sm);
+}
+
+/* Leaflet tweaks for the warm dark UI */
 .leaflet-container {
-  background: #0b0d0f;
+  background: #0c0b09;
+  font: inherit;
+}
+
+.leaflet-bar {
+  border: none !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 .leaflet-bar a,
@@ -72,20 +139,28 @@ a {
 
 .leaflet-tooltip {
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   color: var(--ink);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
 }
 
 .leaflet-tooltip-top::before {
-  border-top-color: var(--line);
+  border-top-color: var(--line-strong);
 }
 
 .leaflet-control-attribution {
-  background: rgba(10, 12, 14, 0.7) !important;
+  background: rgba(12, 11, 9, 0.72) !important;
   color: var(--muted) !important;
 }
 
 .leaflet-control-attribution a {
   color: var(--muted) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
