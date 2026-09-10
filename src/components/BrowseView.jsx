@@ -3,6 +3,7 @@ import { buildRails } from '../lib/browse';
 import { SAFETY_META, priceLabel } from '../lib/format';
 import { formatDistance } from '../lib/geo';
 import { photoFor, cuisineEmoji } from '../data/cardPhotos';
+import { SafetyKeyButton } from './SafetyKey';
 
 function PosterCard({ r, onOpen }) {
   const meta = SAFETY_META[r.safetyLevel] || SAFETY_META['gf-menu'];
@@ -117,6 +118,7 @@ export default function BrowseView({
   onOpen,
   onSeeAll,
   onOpenMap,
+  onExplainColors,
 }) {
   const rails = useMemo(() => buildRails({ position }), [position]);
 
@@ -130,6 +132,7 @@ export default function BrowseView({
               ? `You're set to ${hood}. Browse celiac-safe spots below, or open the map to zoom in on ${hood}.`
               : "Browse celiac-safe spots by vibe, cuisine, or how close they are — then hit the map when you know where you're headed."}
           </p>
+          <SafetyKeyButton onClick={onExplainColors} />
         </div>
         <button className="btn browse-map-btn" onClick={onOpenMap}>
           {hood ? `Map of ${hood}` : 'Open the map'}

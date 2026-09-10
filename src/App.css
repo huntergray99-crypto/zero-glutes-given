@@ -220,8 +220,22 @@
   font-size: 12px;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 4px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+  color: var(--ink);
+  text-align: left;
+}
+
+button.map-legend:hover {
+  border-color: var(--green-bright);
+}
+
+.map-legend-more {
+  margin-top: 2px;
+  color: var(--green-bright);
+  font-weight: 600;
+  font-size: 11px;
 }
 
 /* ---------- map controls ---------- */
@@ -1872,6 +1886,86 @@
   .detail {
     width: 100%;
   }
+
+  /* clear the (2-line) attribution on narrow screens */
+  .map-legend {
+    bottom: 44px;
+    font-size: 11px;
+    padding: 7px 9px;
+  }
+
+  .navtab {
+    padding: 12px 12px 10px;
+    font-size: 13.5px;
+  }
+}
+
+/* ---------- safety key ---------- */
+.safety-key-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--card-2);
+  color: var(--green-bright);
+  border-radius: var(--r-pill);
+  padding: 4px 11px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.safety-key-btn:hover {
+  background: var(--card-3);
+}
+
+.safety-key {
+  width: 440px;
+}
+
+.safety-key-list {
+  list-style: none;
+  margin: 14px 0 4px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.safety-key-list li {
+  display: flex;
+  gap: 10px;
+}
+
+.safety-key-badge {
+  flex: none;
+  align-self: flex-start;
+  margin-top: 2px;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid;
+  border-radius: 5px;
+  padding: 2px 6px;
+  min-width: 88px;
+  text-align: center;
+}
+
+.safety-key-list strong {
+  font-size: 13.5px;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.safety-key-list p {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.safety-key-foot-note {
+  margin-top: 12px;
 }
 
 /* ---------- top nav tabs ---------- */

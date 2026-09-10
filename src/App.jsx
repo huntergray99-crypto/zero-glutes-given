@@ -12,6 +12,7 @@ import SearchBox from './components/SearchBox';
 import BrowseView from './components/BrowseView';
 import DeliveryView from './components/DeliveryView';
 import NavTabs from './components/NavTabs';
+import SafetyKey from './components/SafetyKey';
 import NeighborhoodPicker from './components/NeighborhoodPicker';
 import Toast from './components/Toast';
 import { useGeolocation } from './lib/useGeolocation';
@@ -78,6 +79,7 @@ export default function App() {
   const [showHoodPicker, setShowHoodPicker] = useState(false);
   const [view, setView] = useState('browse'); // 'browse' | 'explore'
   const [tab, setTab] = useState('home'); // 'home' | 'delivery'
+  const [showSafetyKey, setShowSafetyKey] = useState(false);
 
   const {
     position,
@@ -397,6 +399,7 @@ export default function App() {
           onLocate={toggleLocate}
           onUseLocation={startLocate}
           onOpenRestaurant={selectRestaurant}
+          onExplainColors={() => setShowSafetyKey(true)}
         />
       ) : (
         <>
@@ -471,6 +474,7 @@ export default function App() {
           onOpen={selectRestaurant}
           onSeeAll={seeAllFromRail}
           onOpenMap={openMapView}
+          onExplainColors={() => setShowSafetyKey(true)}
         />
       ) : (
       <main className="layout">
@@ -482,6 +486,7 @@ export default function App() {
               count={filtered.length}
               total={filters.showHonorable ? ALL.length : CELIAC_COUNT}
               cuisineCounts={cuisineCounts}
+              onExplainColors={() => setShowSafetyKey(true)}
             />
           </div>
           <div className="list-wrap">
@@ -514,7 +519,12 @@ export default function App() {
               fitRequest={fitRequest}
             />
           </ErrorBoundary>
-          <div className="map-legend">
+          <button
+            type="button"
+            className="map-legend"
+            onClick={() => setShowSafetyKey(true)}
+            title="What do the colors mean?"
+          >
             <span>
               <i style={{ background: '#1b7f4b' }} /> Dedicated GF
             </span>
@@ -530,7 +540,8 @@ export default function App() {
                 mention
               </span>
             ) : null}
-          </div>
+            <span className="map-legend-more">What do these mean? ›</span>
+          </button>
         </section>
       </main>
       )}
@@ -584,6 +595,10 @@ export default function App() {
           locateDenied={locateStatus === 'denied' || locateStatus === 'error'}
           dismissable={hoodSeen()}
         />
+      ) : null}
+
+      {showSafetyKey ? (
+        <SafetyKey onClose={() => setShowSafetyKey(false)} />
       ) : null}
 
       <Toast toast={toast} onDismiss={() => setToast(null)} />

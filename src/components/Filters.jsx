@@ -13,7 +13,14 @@ const EMPTY_FILTERS = {
   showHonorable: false,
 };
 
-export default function Filters({ filters, setFilters, count, total, cuisineCounts }) {
+export default function Filters({
+  filters,
+  setFilters,
+  count,
+  total,
+  cuisineCounts,
+  onExplainColors,
+}) {
   function toggleSafety(level) {
     setFilters((f) => {
       const next = new Set(f.safety);
@@ -60,7 +67,14 @@ export default function Filters({ filters, setFilters, count, total, cuisineCoun
       </div>
 
       <fieldset>
-        <legend>Safety level</legend>
+        <legend>
+          Safety level{' '}
+          {onExplainColors ? (
+            <button type="button" className="link-btn" onClick={onExplainColors}>
+              what do these mean?
+            </button>
+          ) : null}
+        </legend>
         {SAFETY_ORDER.map((level) => (
           <label key={level} className="check">
             <input

@@ -6,6 +6,7 @@ import { NEIGHBORHOODS, nearestNeighborhood } from '../lib/neighborhoods';
 import { deliveryLinks, menuLink, pickupOnly } from '../lib/order';
 import MapView from './MapView';
 import ErrorBoundary from './ErrorBoundary';
+import { SafetyKeyButton } from './SafetyKey';
 
 const AREA_KEY = 'zgg.delivery.area';
 const SEEN_KEY = 'zgg.delivery.seen';
@@ -202,6 +203,7 @@ export default function DeliveryView({
   onLocate,
   onUseLocation,
   onOpenRestaurant,
+  onExplainColors,
 }) {
   const all = useMemo(() => deliverySpots(restaurants), [restaurants]);
   const [area, setArea] = useState(() => read(AREA_KEY) || null);
@@ -322,6 +324,7 @@ export default function DeliveryView({
                 ? `Spots that deliver around ${area}, closest first.`
                 : 'Every celiac-safe spot that delivers. Check the menu, then pick your app.'}
             </p>
+            <SafetyKeyButton onClick={onExplainColors} />
           </div>
           <div className="dcard-list">
             {list.length === 0 ? (
@@ -367,7 +370,12 @@ export default function DeliveryView({
               fitRequest={fitRequest}
             />
           </ErrorBoundary>
-          <div className="map-legend">
+          <button
+            type="button"
+            className="map-legend"
+            onClick={onExplainColors}
+            title="What do the colors mean?"
+          >
             <span>
               <i style={{ background: '#1b7f4b' }} /> Dedicated GF
             </span>
@@ -377,7 +385,8 @@ export default function DeliveryView({
             <span>
               <i style={{ background: '#b07d2f' }} /> GF menu
             </span>
-          </div>
+            <span className="map-legend-more">What do these mean? ›</span>
+          </button>
         </section>
       </main>
 
