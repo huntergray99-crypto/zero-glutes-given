@@ -142,7 +142,11 @@ export default function BrowseView({
 
       <p className="browse-foot muted">
         Always confirm your needs with the restaurant. This guide is a starting
-        point, not a medical guarantee.
+        point, not a medical guarantee. Restaurant photos via{' '}
+        <a href="https://www.yelp.com" target="_blank" rel="noreferrer">
+          Yelp
+        </a>{' '}
+        and the restaurants' own sites.
       </p>
     </div>
   );

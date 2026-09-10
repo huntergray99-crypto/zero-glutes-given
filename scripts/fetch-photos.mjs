@@ -29,30 +29,12 @@ const DATA_FILE = path.resolve('src/data/spotPhotos.js');
 // Which of a business's (up to 3) Yelp photos to use, when [0] isn't the best
 // food shot. Tune after a first run.
 const PHOTO_INDEX = {
-  // 'some-id': 1,
+  'i-cant-believe-its-bread-bellevue': 2, // [0] had a photographer watermark
 };
 
-// Hand-set photos that shouldn't be fetched (already good, or Yelp has none).
-const MANUAL = {
-  'askatu-bakery': {
-    file: '/spots/askatu-bakery.webp',
-    remote:
-      'https://upload.wikimedia.org/wikipedia/commons/e/e9/Seattle%2C_Washington%2C_U.S._%28November_2022%29_-_170.jpg',
-    credit: 'Wikimedia Commons',
-  },
-  'frankie-and-jos': {
-    file: '/spots/frankie-and-jos.webp',
-    remote:
-      'https://upload.wikimedia.org/wikipedia/commons/f/fe/Seattle%2C_April_2024_-_27.jpg',
-    credit: 'Wikimedia Commons',
-  },
-  'tacos-chukis-broadway': {
-    file: '/spots/tacos-chukis-broadway.webp',
-    remote:
-      'https://upload.wikimedia.org/wikipedia/commons/c/c1/Seattle_in_October_2022_-_177_%28cropped%29.jpg',
-    credit: 'Wikimedia Commons',
-  },
-};
+// Hand-set photos that shouldn't be fetched from Yelp (Yelp has none / a better
+// source exists). id -> { remote, credit }.
+const MANUAL = {};
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

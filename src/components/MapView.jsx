@@ -11,8 +11,27 @@ import { SAFETY_META } from '../lib/format';
 
 const SEATTLE_CENTER = [47.615, -122.33];
 
-// Free, no-API-key raster tiles. Dark = Esri Dark Gray Canvas; Light = CARTO
-// Voyager (colored, close to Google/Apple Maps light); Satellite = Esri imagery.
+// A MapTiler key (free tier, VITE_MAPTILER_KEY) buys the polished Google-Maps-
+// style "Streets" raster. Without one, Light falls back to standard OpenStreetMap
+// tiles — colored and labelled, just less refined.
+const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY || '';
+
+const LIGHT_TILES = MAPTILER_KEY
+  ? {
+      url: `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}${
+        window.devicePixelRatio > 1 ? '@2x' : ''
+      }.png?key=${MAPTILER_KEY}`,
+      attribution:
+        '<a href="https://www.maptiler.com/copyright/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxNativeZoom: 20,
+    }
+  : {
+      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxNativeZoom: 19,
+    };
+
 const BASEMAPS = {
   dark: {
     label: 'Dark',
@@ -25,12 +44,10 @@ const BASEMAPS = {
   },
   light: {
     label: 'Light',
-    // Esri World Street Map — colored streets, parks, and water, labels baked in
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-    attribution:
-      'Tiles &copy; <a href="https://www.esri.com/">Esri</a> — Esri, HERE, Garmin, &copy; OpenStreetMap contributors, and the GIS user community',
+    url: LIGHT_TILES.url,
+    attribution: LIGHT_TILES.attribution,
     maxZoom: 19,
-    maxNativeZoom: 19,
+    maxNativeZoom: LIGHT_TILES.maxNativeZoom,
   },
   satellite: {
     label: 'Satellite',
