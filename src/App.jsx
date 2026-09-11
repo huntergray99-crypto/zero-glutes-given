@@ -7,6 +7,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import UpdatePrompt from './components/UpdatePrompt';
 import RestaurantDetail from './components/RestaurantDetail';
 import ProfilePanel from './components/ProfilePanel';
+import AdminPanel from './components/AdminPanel';
 import FeedPanel from './components/FeedPanel';
 import SearchBox from './components/SearchBox';
 import BrowseView from './components/BrowseView';
@@ -70,6 +71,7 @@ export default function App() {
   const [mobileView, setMobileView] = useState('list');
   const [showFilters, setShowFilters] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
   const [feedTag, setFeedTag] = useState(undefined); // undefined = closed
   const [reviewsVersion, setReviewsVersion] = useState(0);
   const [profileVersion, setProfileVersion] = useState(0);
@@ -566,7 +568,21 @@ export default function App() {
         <ProfilePanel
           onClose={() => setShowProfile(false)}
           onOpenRestaurant={openFromProfile}
+          onOpenAdmin={() => {
+            setShowProfile(false);
+            setShowAdmin(true);
+          }}
           version={profileVersion + reviewsVersion}
+        />
+      ) : null}
+
+      {showAdmin ? (
+        <AdminPanel
+          onClose={() => setShowAdmin(false)}
+          onOpenRestaurant={(id) => {
+            setShowAdmin(false);
+            selectRestaurant(id);
+          }}
         />
       ) : null}
 

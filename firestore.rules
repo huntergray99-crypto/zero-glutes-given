@@ -12,6 +12,19 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Admin allowlist. Add a doc here (id = the account's uid) from the
+    // Firebase console to grant triage access — no custom claims, no
+    // server-side tooling. Nobody can write it from the client.
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    match /admins/{adminId} {
+      allow get: if request.auth != null && request.auth.uid == adminId;
+      allow list, write: if false;
+    }
+
     match /posts/{postId} {
       allow read: if true;
 
@@ -90,10 +103,15 @@ service cloud.firestore {
         && request.resource.data.handle.size() <= 24;
     }
 
-    // Community corrections / suggestions. Write-only for everyone (auth
-    // optional); only the admin reads them, via the Firebase console.
+    // Community corrections / suggestions. Anyone may file one (auth
+    // optional); only an allowlisted admin can read or triage them.
     match /reports/{reportId} {
-      allow read, update, delete: if false;
+      allow read: if isAdmin();
+
+      allow update: if isAdmin()
+        && request.resource.data.status in ['open', 'resolved'];
+
+      allow delete: if false;
 
       allow create: if request.resource.data.type is string
         && request.resource.data.text is string

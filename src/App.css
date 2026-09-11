@@ -1110,6 +1110,135 @@ button.map-legend:hover {
   color: var(--muted);
 }
 
+/* ---- admin report queue ---- */
+
+.admin-entry {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.admin-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.admin-summary div {
+  background: var(--card-2);
+  border-radius: 10px;
+  padding: 10px 4px;
+  text-align: center;
+}
+
+.admin-summary b {
+  display: block;
+  font-size: 18px;
+}
+
+.admin-summary span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.admin-summary .admin-urgent b {
+  color: #e2604b;
+}
+
+.admin-filters {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.admin-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-row {
+  flex: 0 0 auto;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 11px 12px;
+}
+
+.admin-row-urgent {
+  border-color: #e2604b88;
+  box-shadow: inset 3px 0 0 #e2604b;
+}
+
+.admin-row-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+}
+
+.admin-row-head time {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.admin-type {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-radius: 5px;
+  padding: 2px 7px;
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+}
+
+.admin-type-safety {
+  color: #e2604b;
+  border-color: #e2604b66;
+}
+
+.admin-flag {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #e0a341;
+  border: 1px solid #e0a34155;
+  border-radius: var(--r-pill);
+  padding: 2px 7px;
+}
+
+.admin-done {
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.admin-row-spot {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.admin-row-text {
+  font-size: 13px;
+  margin: 0 0 8px;
+  color: var(--text-2, inherit);
+}
+
+.admin-row-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.admin-row-actions .btn {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
 .punch-list {
   list-style: none;
   padding: 0;

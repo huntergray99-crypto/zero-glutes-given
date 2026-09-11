@@ -4,10 +4,17 @@ import { badgeProgress } from '../lib/badges';
 import { SAFETY_META } from '../lib/format';
 import { shareApp } from '../lib/share';
 import { useCloud } from '../lib/CloudContext';
+import { useIsAdmin } from '../lib/useIsAdmin';
 import MyPhotos from './MyPhotos';
 import SuggestSpot from './SuggestSpot';
 
-export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
+export default function ProfilePanel({
+  onClose,
+  onOpenRestaurant,
+  onOpenAdmin,
+  version,
+}) {
+  const { isAdmin } = useIsAdmin();
   const {
     user,
     signedIn,
@@ -156,6 +163,12 @@ export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
             <p className="muted">{migrateMsg}</p>
           ) : null}
         </div>
+
+        {isAdmin ? (
+          <button className="btn admin-entry" onClick={onOpenAdmin}>
+            🛠 Report queue
+          </button>
+        ) : null}
 
         <label className="handle-row">
           <span>Handle</span>
