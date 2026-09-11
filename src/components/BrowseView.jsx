@@ -2,12 +2,13 @@ import { useMemo, useRef } from 'react';
 import { buildRails } from '../lib/browse';
 import { SAFETY_META, priceLabel } from '../lib/format';
 import { formatDistance } from '../lib/geo';
-import { photoFor, cuisineEmoji } from '../data/cardPhotos';
+import { photoFor, photoCredit, cuisineEmoji } from '../data/cardPhotos';
 import { SafetyKeyButton } from './SafetyKey';
 
 function PosterCard({ r, onOpen }) {
   const meta = SAFETY_META[r.safetyLevel] || SAFETY_META['gf-menu'];
   const photo = photoFor(r);
+  const credit = photoCredit(r);
   return (
     <button
       className="poster"
@@ -39,6 +40,25 @@ function PosterCard({ r, onOpen }) {
           ) : null}
           {r.lateNight ? <span className="poster-flag">🌙 Late</span> : null}
         </span>
+        {credit ? (
+          <span
+            className="photo-credit"
+            role="link"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(credit.yelpUrl, '_blank', 'noopener,noreferrer');
+            }}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter' && e.key !== ' ') return;
+              e.stopPropagation();
+              e.preventDefault();
+              window.open(credit.yelpUrl, '_blank', 'noopener,noreferrer');
+            }}
+          >
+            Photo: {credit.credit}
+          </span>
+        ) : null}
       </span>
       <span className="poster-body">
         <span

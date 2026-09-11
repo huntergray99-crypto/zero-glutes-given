@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { SAFETY_META, priceLabel } from '../lib/format';
 import { haversineMiles, formatDistance } from '../lib/geo';
-import { photoFor } from '../data/cardPhotos';
+import { photoFor, photoCredit } from '../data/cardPhotos';
 import { NEIGHBORHOODS, nearestNeighborhood } from '../lib/neighborhoods';
 import { deliveryLinks, menuLink, pickupOnly } from '../lib/order';
 import MapView from './MapView';
@@ -95,6 +95,7 @@ function OrderChoice({ restaurant, onClose }) {
 function DeliveryCard({ r, distMi, selected, onOpen, onSelect, onOrder }) {
   const meta = SAFETY_META[r.safetyLevel] || SAFETY_META['gf-menu'];
   const photo = photoFor(r);
+  const credit = photoCredit(r);
   const menu = menuLink(r);
   const apps = deliveryLinks(r);
   const noApps = pickupOnly(r) || apps.length === 0;
@@ -107,6 +108,25 @@ function DeliveryCard({ r, distMi, selected, onOpen, onSelect, onOrder }) {
     >
       <button className="dcard-media" onClick={() => onOpen(r.id)}>
         {photo ? <img src={photo} alt="" decoding="async" /> : null}
+        {credit ? (
+          <span
+            className="photo-credit photo-credit-sm"
+            role="link"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(credit.yelpUrl, '_blank', 'noopener,noreferrer');
+            }}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter' && e.key !== ' ') return;
+              e.stopPropagation();
+              e.preventDefault();
+              window.open(credit.yelpUrl, '_blank', 'noopener,noreferrer');
+            }}
+          >
+            Yelp
+          </span>
+        ) : null}
       </button>
       <div className="dcard-body">
         <div className="dcard-head">
@@ -348,7 +368,11 @@ export default function DeliveryView({
           <p className="browse-foot muted">
             We link out to DoorDash, Grubhub, and Uber Eats — we can't show live
             menus or take the order here. Restate your celiac needs in the order
-            notes.
+            notes. Restaurant photos via{' '}
+            <a href="https://www.yelp.com" target="_blank" rel="noreferrer">
+              Yelp
+            </a>{' '}
+            and the restaurants' own sites.
           </p>
         </section>
 

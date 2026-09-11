@@ -24,6 +24,7 @@ import {
   isLateNow,
 } from '../lib/order';
 import { shareSpot } from '../lib/share';
+import { photoFor, photoCredit } from '../data/cardPhotos';
 import { useCloud } from '../lib/CloudContext';
 import ReviewForm from './ReviewForm';
 import PostComposer from './PostComposer';
@@ -57,6 +58,8 @@ export default function RestaurantDetail({
     }
   }
   const meta = SAFETY_META[r.safetyLevel];
+  const photo = photoFor(r);
+  const credit = photoCredit(r);
   const reviews = getReviews(r.id);
   const stats = summarize(reviews);
 
@@ -118,6 +121,22 @@ export default function RestaurantDetail({
         <button className="detail-close" onClick={onClose} aria-label="Close">
           ×
         </button>
+
+        {photo ? (
+          <div className="detail-photo">
+            <img src={photo} alt="" decoding="async" />
+            {credit ? (
+              <a
+                className="photo-credit"
+                href={credit.yelpUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Photo: {credit.credit}
+              </a>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="detail-head" style={{ borderColor: meta.color }}>
           <span className="badge-row">
