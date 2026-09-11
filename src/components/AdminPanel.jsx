@@ -14,9 +14,13 @@ import { getEntitlement, setEntitlement } from '../lib/entitlements';
 import { trustScore, trustTier } from '../lib/trust';
 import { SAFETY_META } from '../lib/format';
 
-const TYPE_LABEL = Object.fromEntries(
-  CHANGE_TYPES.map((t) => [t.value, t.label])
-);
+const TYPE_LABEL = {
+  ...Object.fromEntries(CHANGE_TYPES.map((t) => [t.value, t.label])),
+  // SuggestSpot.jsx files this type directly — it isn't one of the
+  // dropdown options in ReportChange.jsx (CHANGE_TYPES), since "add a
+  // spot that doesn't exist yet" isn't a correction to an existing one.
+  'new-spot': 'New spot suggestion',
+};
 
 // Two independent people saying the same thing about the same spot is the
 // point at which a report stops being one person's opinion.
@@ -177,6 +181,154 @@ function FixForm({ spot, onDone }) {
   );
 }
 
+const slugify = (name) =>
+  name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+
+// Publish a suggested new spot straight from the report — same override
+// mechanism as FixForm, just creating a restaurant id that doesn't exist in
+// the bundled baseline instead of correcting one that does (see
+// restaurantStore.js's rebuild(): a doc with no matching baseline id and a
+// name + lat/lng becomes a brand-new live spot). No geocoding lookup here
+// — that's a paid API call — so lat/lng is a manual paste from Google Maps.
+function AddSpotForm({ report, existingIds, onDone }) {
+  const [name, setName] = useState(report.restaurantName || '');
+  const [neighborhood, setNeighborhood] = useState('');
+  const [address, setAddress] = useState('');
+  const [latlng, setLatlng] = useState('');
+  const [safetyLevel, setSafetyLevel] = useState('gf-menu');
+  const [dedicatedFryer, setDedicatedFryer] = useState(false);
+  const [celiacVerified, setCeliacVerified] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null);
+
+  const id = slugify(name);
+  const idTaken = id && existingIds.has(id);
+  const [lat, lng] = latlng.split(',').map((s) => Number(s.trim()));
+  const validLatLng = Number.isFinite(lat) && Number.isFinite(lng);
+
+  async function publish() {
+    setBusy(true);
+    setMsg(null);
+    try {
+      await saveOverride(
+        id,
+        {
+          name: name.trim(),
+          neighborhood: neighborhood.trim(),
+          address: address.trim(),
+          lat,
+          lng,
+          safetyLevel,
+          dedicatedFryer,
+          celiacVerified,
+          lastVerified: new Date().toISOString().slice(0, 7),
+        },
+        `Added from a community suggestion: “${report.text}”`
+      );
+      await setReportStatus(report.id, 'resolved');
+      setMsg('Published — live for everyone.');
+      onDone?.();
+    } catch (e) {
+      console.error('publish new spot', e);
+      setMsg('Could not publish.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="admin-fix">
+      <label className="rf-row">
+        <span>Name</span>
+        <input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} />
+      </label>
+      {id ? (
+        <p className={`rf-note ${idTaken ? 'rf-note-warn' : ''}`}>
+          Will publish as <code>{id}</code>
+          {idTaken ? ' — already exists, pick a different name or edit that spot directly.' : ''}
+        </p>
+      ) : null}
+
+      <label className="rf-row">
+        <span>Neighborhood</span>
+        <input value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} maxLength={80} />
+      </label>
+
+      <label className="rf-row">
+        <span>Address</span>
+        <input value={address} onChange={(e) => setAddress(e.target.value)} maxLength={200} />
+      </label>
+
+      <label className="rf-row">
+        <span>
+          Lat, lng{' '}
+          {address ? (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="link-btn"
+            >
+              look up ↗
+            </a>
+          ) : null}
+        </span>
+        <input
+          value={latlng}
+          onChange={(e) => setLatlng(e.target.value)}
+          placeholder="47.6905, -122.3549"
+        />
+      </label>
+
+      <label className="rf-row">
+        <span>Safety level</span>
+        <select value={safetyLevel} onChange={(e) => setSafetyLevel(e.target.value)}>
+          {SAFETY_LEVELS.map((l) => (
+            <option key={l} value={l}>
+              {SAFETY_META[l].label}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="rf-check">
+        <input
+          type="checkbox"
+          checked={dedicatedFryer}
+          onChange={(e) => setDedicatedFryer(e.target.checked)}
+        />
+        Dedicated gluten-free fryer
+      </label>
+
+      <label className="rf-check">
+        <input
+          type="checkbox"
+          checked={celiacVerified}
+          onChange={(e) => setCeliacVerified(e.target.checked)}
+        />
+        Community celiac-verified
+      </label>
+
+      <div className="admin-row-actions">
+        <button
+          className="btn"
+          onClick={publish}
+          disabled={busy || !id || idTaken || !neighborhood.trim() || !validLatLng}
+        >
+          {busy ? 'Publishing…' : 'Publish new spot'}
+        </button>
+      </div>
+
+      {msg ? <p className="rf-note">{msg}</p> : null}
+    </div>
+  );
+}
+
 // Manual premium grant/revoke by uid — the comp mechanism until a real
 // payment processor (Stripe/RevenueCat) is wired up and does this via
 // webhook instead. "uid" not "email" because that's what entitlements are
@@ -278,6 +430,7 @@ export default function AdminPanel({ onClose, onOpenRestaurant }) {
     () => Object.fromEntries(spots.map((r) => [r.id, r])),
     [spots]
   );
+  const existingIds = useMemo(() => new Set(spots.map((r) => r.id)), [spots]);
 
   // Reporter trust cards — fetched from the already-public users/{uid}
   // collection, cached by uid so re-renders don't refetch. See trust.js for
@@ -519,11 +672,28 @@ export default function AdminPanel({ onClose, onOpenRestaurant }) {
                         {editing === r.id ? 'Close' : 'Fix the data'}
                       </button>
                     ) : null}
+                    {!spot && r.type === 'new-spot' ? (
+                      <button
+                        className="btn btn-ghost"
+                        onClick={() =>
+                          setEditing(editing === r.id ? null : r.id)
+                        }
+                      >
+                        {editing === r.id ? 'Close' : 'Add this spot'}
+                      </button>
+                    ) : null}
                   </div>
 
                   {spot && editing === r.id ? (
                     <FixForm
                       spot={spot}
+                      onDone={() => setEditing((e) => e)}
+                    />
+                  ) : null}
+                  {!spot && r.type === 'new-spot' && editing === r.id ? (
+                    <AddSpotForm
+                      report={r}
+                      existingIds={existingIds}
                       onDone={() => setEditing((e) => e)}
                     />
                   ) : null}
