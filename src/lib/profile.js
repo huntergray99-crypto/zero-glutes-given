@@ -128,6 +128,7 @@ export function computeStats({ posts = 0, checkIns = {} } = {}) {
 
   let points = 0;
   let totalCheckIns = 0;
+  let verifiedCheckIns = 0;
   let featuredVisited = 0;
   let lateCheckIn = false;
   const hoods = new Set();
@@ -142,6 +143,7 @@ export function computeStats({ posts = 0, checkIns = {} } = {}) {
 
     list.forEach((c, i) => {
       points += c.verified ? POINTS.verifiedCheckIn : POINTS.checkIn;
+      if (c.verified) verifiedCheckIns += 1;
       if (i === 0) points += POINTS.discovery;
       if (r.featured) points += POINTS.featuredBonus;
       const hr = new Date(c.date).getHours();
@@ -170,6 +172,7 @@ export function computeStats({ posts = 0, checkIns = {} } = {}) {
     level,
     nextLevel,
     totalCheckIns,
+    verifiedCheckIns,
     uniqueSpots: punchCard.length,
     featuredVisited,
     reviewsWritten,

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import {
   watchReports,
   setReportStatus,
@@ -9,6 +11,7 @@ import {
 import { useAllRestaurants } from '../lib/restaurantStore';
 import { saveOverride, clearOverride } from '../lib/overrides';
 import { getEntitlement, setEntitlement } from '../lib/entitlements';
+import { trustScore, trustTier } from '../lib/trust';
 import { SAFETY_META } from '../lib/format';
 
 const TYPE_LABEL = Object.fromEntries(
@@ -26,6 +29,22 @@ const FILTERS = [
 ];
 
 const SAFETY_LEVELS = ['dedicated', 'celiac-friendly', 'gf-menu'];
+
+// One person's report, whatever their trust tier, is still one person's
+// report — a quick-apply only appears once corroboration hits the threshold
+// AND at least one of the corroborating reporters isn't a brand-new account.
+// A single anonymous claim, however confident, never auto-suggests a fix.
+function TrustBadge({ card }) {
+  if (!card) return null;
+  const score = trustScore(card);
+  const tier = trustTier(score);
+  if (!tier.badge) return null;
+  return (
+    <span className={`trust-badge trust-${tier.name.toLowerCase()}`} title={`Trust score ${score}/100`}>
+      {tier.badge} {tier.name}
+    </span>
+  );
+}
 
 // Apply a correction to a spot without a deploy. Writes only the fields that
 // changed into the spot's override doc; everything else keeps falling through
@@ -260,6 +279,37 @@ export default function AdminPanel({ onClose, onOpenRestaurant }) {
     [spots]
   );
 
+  // Reporter trust cards — fetched from the already-public users/{uid}
+  // collection, cached by uid so re-renders don't refetch. See trust.js for
+  // why this reads the public leaderboard card rather than anything private.
+  const [trustCards, setTrustCards] = useState({});
+  useEffect(() => {
+    const uids = [...new Set(reports.map((r) => r.uid).filter(Boolean))];
+    const missing = uids.filter((u) => !(u in trustCards));
+    if (!missing.length) return;
+    let cancelled = false;
+    Promise.all(
+      missing.map(async (uid) => {
+        try {
+          const snap = await getDoc(doc(db, 'users', uid));
+          return [uid, snap.exists() ? snap.data() : null];
+        } catch {
+          return [uid, null];
+        }
+      })
+    ).then((pairs) => {
+      if (cancelled) return;
+      setTrustCards((prev) => {
+        const next = { ...prev };
+        for (const [uid, card] of pairs) next[uid] = card;
+        return next;
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [reports, trustCards]);
+
   const shown = useMemo(() => {
     const list = reports.filter((r) =>
       filter === 'all' ? true : r.status === filter
@@ -285,6 +335,27 @@ export default function AdminPanel({ onClose, onOpenRestaurant }) {
       await setReportStatus(r.id, status);
     } catch (e) {
       console.error('set report status', e);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  // One click instead of opening the fix form and re-typing what the report
+  // already says — but only once two independent people agree AND at least
+  // one of them isn't a brand-new account. Still a human's click, on
+  // purpose: see trust.js for why this never fires without one.
+  async function quickApplyClosed(r) {
+    setBusyId(r.id);
+    try {
+      const n = counts[`${r.restaurantId}|${r.type}`] || 0;
+      await saveOverride(
+        r.restaurantId,
+        { closed: true, lastVerified: new Date().toISOString().slice(0, 7) },
+        `Quick-applied from ${n} corroborating "closed" reports.`
+      );
+      await setReportStatus(r.id, 'resolved');
+    } catch (e) {
+      console.error('quick apply', e);
     } finally {
       setBusyId(null);
     }
@@ -352,6 +423,21 @@ export default function AdminPanel({ onClose, onOpenRestaurant }) {
               const n = counts[`${r.restaurantId}|${r.type}`] || 0;
               const corroborated = n >= CORROBORATION_THRESHOLD;
               const spot = r.restaurantId ? byId[r.restaurantId] : null;
+              const reporterCard = trustCards[r.uid];
+              // corroborated + at least one non-New reporter on this
+              // restaurant+type pair is what unlocks the one-click path
+              const hasEstablishedCorroborator = reports.some(
+                (o) =>
+                  o.restaurantId === r.restaurantId &&
+                  o.type === r.type &&
+                  o.status === 'open' &&
+                  trustTier(trustScore(trustCards[o.uid])).name !== 'New'
+              );
+              const canQuickApply =
+                r.type === 'closed' &&
+                spot &&
+                corroborated &&
+                hasEstablishedCorroborator;
               return (
                 <li
                   key={r.id}
@@ -390,11 +476,22 @@ export default function AdminPanel({ onClose, onOpenRestaurant }) {
                     {r.handle ? (
                       <span className="muted"> · @{r.handle}</span>
                     ) : null}
+                    <TrustBadge card={reporterCard} />
                   </div>
 
                   {r.text ? <p className="admin-row-text">{r.text}</p> : null}
 
                   <div className="admin-row-actions">
+                    {canQuickApply && r.status === 'open' ? (
+                      <button
+                        className="btn admin-quick-apply"
+                        disabled={busyId === r.id}
+                        onClick={() => quickApplyClosed(r)}
+                        title={`${n} corroborating reports, including at least one established account`}
+                      >
+                        {busyId === r.id ? 'Applying…' : `⚡ Quick-apply: mark closed (${n}×)`}
+                      </button>
+                    ) : null}
                     {r.status === 'open' ? (
                       <button
                         className="btn btn-ghost"
@@ -441,6 +538,10 @@ export default function AdminPanel({ onClose, onOpenRestaurant }) {
           no deploy — it’s stored as an override on top of the published
           dataset and is reversible. Safety level, fryer, and verification
           status are editable here; anything else still needs a code change.
+          Trust badges come from public activity (verified check-ins, reviews,
+          badges) — a signal to help you triage faster, never a substitute
+          for reading the report. Quick-apply only appears once independent
+          reports corroborate each other and never fires on its own.
         </p>
       </aside>
     </>

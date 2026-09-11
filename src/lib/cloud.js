@@ -137,6 +137,7 @@ export async function syncUserCard(stats) {
       points: stats.points ?? 0,
       level: stats.level?.name ?? 'Crumb',
       checkIns: stats.totalCheckIns ?? 0,
+      verifiedCheckIns: stats.verifiedCheckIns ?? 0,
       spots: stats.uniqueSpots ?? 0,
       reviews: stats.reviewsWritten ?? 0,
       posts: stats.posts ?? 0,
