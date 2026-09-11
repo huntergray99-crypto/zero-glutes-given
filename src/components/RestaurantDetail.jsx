@@ -12,9 +12,10 @@ import { useReviews } from '../lib/useReviews';
 import { POINTS } from '../lib/profile';
 import { haversineMiles, formatDistance, walkMinutes } from '../lib/geo';
 import {
-  doordashSearch,
-  uberEatsSearch,
   orderDirect,
+  deliveryLinks,
+  pickupOnly,
+  menuLink,
   rideUrl,
   isLateNow,
 } from '../lib/order';
@@ -80,6 +81,9 @@ export default function RestaurantDetail({
   const late = isLateNow();
   const showDelivery = !r.honorableMention && r.order !== false;
   const direct = orderDirect(r);
+  const apps = deliveryLinks(r);
+  const noApps = pickupOnly(r) || apps.length === 0;
+  const menu = menuLink(r);
 
   // recompute on flash so the button re-locks right after a check-in
   void flash;
@@ -316,37 +320,37 @@ export default function RestaurantDetail({
               </a>
             ) : null}
             <div className="detail-links">
-              <a
-                href={doordashSearch(r)}
-                target="_blank"
-                rel="noreferrer"
-                className="btn btn-ghost"
-              >
-                DoorDash
-              </a>
-              <a
-                href={uberEatsSearch(r)}
-                target="_blank"
-                rel="noreferrer"
-                className="btn btn-ghost"
-              >
-                Uber Eats
-              </a>
-              {r.website && !direct ? (
-                <a
-                  href={r.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn btn-ghost"
-                >
-                  Order on their site
-                </a>
-              ) : null}
+              {noApps ? (
+                menu && !direct ? (
+                  <a
+                    href={menu.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-ghost"
+                  >
+                    {menu.label === 'Full menu' ? 'Order on their site' : menu.label}
+                  </a>
+                ) : null
+              ) : (
+                apps.map((a) => (
+                  <a
+                    key={a.key}
+                    href={a.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-ghost"
+                  >
+                    {a.label}
+                  </a>
+                ))
+              )}
             </div>
             <p className="rf-note">
-              {direct
-                ? 'Ordering direct keeps more of the money with the restaurant and usually gives you a notes field to restate your celiac needs. Any off-site kitchen can differ from the dining room — reconfirm either way.'
-                : 'Delivery kitchens can differ from the dining room — reconfirm your celiac needs in the order notes.'}
+              {noApps
+                ? `${r.name} doesn't take orders through the delivery apps — order or reserve on their own site.`
+                : direct
+                  ? 'Ordering direct keeps more of the money with the restaurant and usually gives you a notes field to restate your celiac needs. Any off-site kitchen can differ from the dining room — reconfirm either way.'
+                  : 'Delivery kitchens can differ from the dining room — reconfirm your celiac needs in the order notes.'}
             </p>
           </div>
         ) : null}
