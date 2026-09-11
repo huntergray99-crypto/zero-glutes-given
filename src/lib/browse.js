@@ -1,12 +1,10 @@
 // Rails for the browse screen — DoorDash-style horizontal shelves built from
 // the restaurant data (plus an optional location for a "Near you" shelf).
 
-import { restaurants } from '../data/restaurants';
 import { activeCity } from '../data/cities';
+import { getRestaurants } from './restaurantStore';
 import { REGION_ORDER, regionForHood } from './neighborhoods';
 import { haversineMiles } from './geo';
-
-const CELIAC = restaurants.filter((r) => !r.honorableMention);
 
 function bySpotlightThenFeatured(a, b) {
   return (
@@ -32,7 +30,10 @@ const MIN_PER_CUISINE = 3;
 
 // A rail is { key, title, subtitle?, spots: [...], filter?: partial filter to
 // apply when the user taps "See all" }.
-export function buildRails({ position } = {}) {
+export function buildRails({ position, restaurants } = {}) {
+  const CELIAC = (restaurants || getRestaurants()).filter(
+    (r) => !r.honorableMention
+  );
   const rails = [];
 
   if (position) {

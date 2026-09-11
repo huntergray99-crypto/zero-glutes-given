@@ -6,7 +6,9 @@ import {
   isUrgent,
   corroboration,
 } from '../lib/reports';
-import { restaurants } from '../data/restaurants';
+import { useAllRestaurants } from '../lib/restaurantStore';
+import { saveOverride, clearOverride } from '../lib/overrides';
+import { SAFETY_META } from '../lib/format';
 
 const TYPE_LABEL = Object.fromEntries(
   CHANGE_TYPES.map((t) => [t.value, t.label])
@@ -22,11 +24,145 @@ const FILTERS = [
   { key: 'all', label: 'All' },
 ];
 
+const SAFETY_LEVELS = ['dedicated', 'celiac-friendly', 'gf-menu'];
+
+// Apply a correction to a spot without a deploy. Writes only the fields that
+// changed into the spot's override doc; everything else keeps falling through
+// to the bundled baseline.
+function FixForm({ spot, onDone }) {
+  const [safetyLevel, setSafetyLevel] = useState(spot.safetyLevel);
+  const [dedicatedFryer, setDedicatedFryer] = useState(!!spot.dedicatedFryer);
+  const [celiacVerified, setCeliacVerified] = useState(!!spot.celiacVerified);
+  const [closed, setClosed] = useState(!!spot.closed);
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null);
+
+  const thisMonth = new Date().toISOString().slice(0, 7);
+
+  async function save() {
+    setBusy(true);
+    setMsg(null);
+    try {
+      await saveOverride(
+        spot.id,
+        {
+          safetyLevel,
+          dedicatedFryer,
+          celiacVerified,
+          closed,
+          lastVerified: thisMonth,
+        },
+        note
+      );
+      setMsg('Saved — live for everyone.');
+      onDone?.();
+    } catch (e) {
+      console.error('save override', e);
+      setMsg('Could not save.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function revert() {
+    setBusy(true);
+    setMsg(null);
+    try {
+      await clearOverride(spot.id);
+      setMsg('Reverted to the published data.');
+      onDone?.();
+    } catch (e) {
+      console.error('clear override', e);
+      setMsg('Could not revert.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="admin-fix">
+      <label className="rf-row">
+        <span>Safety level</span>
+        <select
+          value={safetyLevel}
+          onChange={(e) => setSafetyLevel(e.target.value)}
+        >
+          {SAFETY_LEVELS.map((l) => (
+            <option key={l} value={l}>
+              {SAFETY_META[l].label}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="rf-check">
+        <input
+          type="checkbox"
+          checked={dedicatedFryer}
+          onChange={(e) => setDedicatedFryer(e.target.checked)}
+        />
+        Dedicated gluten-free fryer
+      </label>
+
+      <label className="rf-check">
+        <input
+          type="checkbox"
+          checked={celiacVerified}
+          onChange={(e) => setCeliacVerified(e.target.checked)}
+        />
+        Community celiac-verified
+      </label>
+
+      <label className="rf-check">
+        <input
+          type="checkbox"
+          checked={closed}
+          onChange={(e) => setClosed(e.target.checked)}
+        />
+        Permanently closed — hide from the app
+      </label>
+
+      <input
+        className="admin-note"
+        placeholder="What changed, and how you know (kept on the record)"
+        value={note}
+        maxLength={500}
+        onChange={(e) => setNote(e.target.value)}
+      />
+
+      <div className="admin-row-actions">
+        <button className="btn" onClick={save} disabled={busy}>
+          {busy ? 'Saving…' : `Publish fix · re-verified ${thisMonth}`}
+        </button>
+        {spot._override ? (
+          <button className="btn btn-ghost" onClick={revert} disabled={busy}>
+            Revert
+          </button>
+        ) : null}
+      </div>
+
+      {msg ? <p className="rf-note">{msg}</p> : null}
+      {spot._override?.updatedAt ? (
+        <p className="rf-note">
+          Last corrected{' '}
+          {new Date(spot._override.updatedAt).toLocaleDateString()}
+          {spot._override.updatedByHandle
+            ? ` by @${spot._override.updatedByHandle}`
+            : ''}
+          {spot._override.note ? ` — “${spot._override.note}”` : ''}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 export default function AdminPanel({ onClose, onOpenRestaurant }) {
   const [reports, setReports] = useState([]);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('open');
   const [busyId, setBusyId] = useState(null);
+  const [editing, setEditing] = useState(null);
 
   useEffect(() => {
     // eslint-disable-next-line react/set-state-in-effect -- reset before subscribing to an external listener
@@ -38,9 +174,10 @@ export default function AdminPanel({ onClose, onOpenRestaurant }) {
   }, []);
 
   const counts = useMemo(() => corroboration(reports), [reports]);
+  const spots = useAllRestaurants();
   const byId = useMemo(
-    () => Object.fromEntries(restaurants.map((r) => [r.id, r])),
-    []
+    () => Object.fromEntries(spots.map((r) => [r.id, r])),
+    [spots]
   );
 
   const shown = useMemo(() => {
@@ -193,7 +330,24 @@ export default function AdminPanel({ onClose, onOpenRestaurant }) {
                         {busyId === r.id ? 'Saving…' : 'Reopen'}
                       </button>
                     )}
+                    {spot ? (
+                      <button
+                        className="btn btn-ghost"
+                        onClick={() =>
+                          setEditing(editing === r.id ? null : r.id)
+                        }
+                      >
+                        {editing === r.id ? 'Close' : 'Fix the data'}
+                      </button>
+                    ) : null}
                   </div>
+
+                  {spot && editing === r.id ? (
+                    <FixForm
+                      spot={spot}
+                      onDone={() => setEditing((e) => e)}
+                    />
+                  ) : null}
                 </li>
               );
             })}
@@ -201,10 +355,10 @@ export default function AdminPanel({ onClose, onOpenRestaurant }) {
         )}
 
         <p className="disclaimer">
-          Triage only for now: restaurant facts live in a static data file, so
-          applying a correction still means a code change and a deploy. Moving
-          safety metadata into the database is what turns these into one-click
-          fixes.
+          “Fix the data” publishes a correction immediately, for everyone, with
+          no deploy — it’s stored as an override on top of the published
+          dataset and is reversible. Safety level, fryer, and verification
+          status are editable here; anything else still needs a code change.
         </p>
       </aside>
     </>

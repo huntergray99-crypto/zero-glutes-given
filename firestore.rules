@@ -25,6 +25,14 @@ service cloud.firestore {
       allow list, write: if false;
     }
 
+    // Runtime corrections layered over the bundled restaurant data. Public
+    // read — every visitor needs corrections applied, that's the point.
+    // Admin-only write: these change published celiac safety claims.
+    match /restaurantOverrides/{restaurantId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /posts/{postId} {
       allow read: if true;
 

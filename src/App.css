@@ -1239,6 +1239,33 @@ button.map-legend:hover {
   padding: 5px 10px;
 }
 
+.admin-fix {
+  margin-top: 10px;
+  padding: 11px 12px;
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.admin-fix .rf-row,
+.admin-fix .rf-check {
+  font-size: 12.5px;
+}
+
+.admin-note {
+  width: 100%;
+  font: inherit;
+  font-size: 12.5px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  border: 1px solid var(--line-strong);
+  background: var(--card-2);
+  color: inherit;
+}
+
 .punch-list {
   list-style: none;
   padding: 0;

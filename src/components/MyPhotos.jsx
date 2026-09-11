@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { allPhotos } from '../lib/photos';
-import { restaurants } from '../data/restaurants';
+import { getAllRestaurants } from '../lib/restaurantStore';
 import PhotoThumb from './PhotoThumb';
 
-const nameById = Object.fromEntries(restaurants.map((r) => [r.id, r.name]));
+// resolved at call time so a runtime rename/addition shows up
+const nameOf = (id) =>
+  getAllRestaurants().find((r) => r.id === id)?.name;
 
 export default function MyPhotos({ onOpenRestaurant }) {
   const [photos, setPhotos] = useState(null);
@@ -37,11 +39,11 @@ export default function MyPhotos({ onOpenRestaurant }) {
               key={p.id}
               className="my-photo"
               onClick={() => onOpenRestaurant(p.restaurantId)}
-              title={nameById[p.restaurantId] || ''}
+              title={nameOf(p.restaurantId) || ''}
             >
               <PhotoThumb photoId={p.id} className="my-photo-img" />
               <span className="my-photo-name">
-                {nameById[p.restaurantId] || 'Unknown spot'}
+                {nameOf(p.restaurantId) || 'Unknown spot'}
               </span>
             </button>
           ))}

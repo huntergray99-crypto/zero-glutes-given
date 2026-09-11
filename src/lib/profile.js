@@ -3,7 +3,7 @@
 // the cloud side — this module owns the local fallback and the pure stats
 // calculation, which doesn't care where the check-ins came from).
 
-import { restaurants } from '../data/restaurants';
+import { getAllRestaurants } from './restaurantStore';
 import { getReviews } from './reviews';
 
 const KEY = 'zgg.profile.v1';
@@ -123,7 +123,8 @@ export function dedupeCheckIns() {
 // { [restaurantId]: visits[] } — cloud when signed in, on-device otherwise.
 // Both are passed in because neither lives in this module anymore.
 export function computeStats({ posts = 0, checkIns = {} } = {}) {
-  const byId = Object.fromEntries(restaurants.map((r) => [r.id, r]));
+  // includes spots closed by an override — a past check-in still counts
+  const byId = Object.fromEntries(getAllRestaurants().map((r) => [r.id, r]));
 
   let points = 0;
   let totalCheckIns = 0;
@@ -150,7 +151,7 @@ export function computeStats({ posts = 0, checkIns = {} } = {}) {
     punchCard.push({ restaurant: r, count: list.length, last: list.at(-1).date });
   }
 
-  const reviewsWritten = restaurants.reduce(
+  const reviewsWritten = getAllRestaurants().reduce(
     (n, r) => n + getReviews(r.id).length,
     0
   );

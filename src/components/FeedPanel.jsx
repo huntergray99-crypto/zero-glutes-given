@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react';
-import { restaurants } from '../data/restaurants';
+import { getAllRestaurants } from '../lib/restaurantStore';
 import { useCloud } from '../lib/CloudContext';
 import PostCard from './PostCard';
 
-const nameById = Object.fromEntries(restaurants.map((r) => [r.id, r.name]));
+// resolved at call time so a runtime rename/addition shows up
+const nameOf = (id) =>
+  getAllRestaurants().find((r) => r.id === id)?.name;
 
 export default function FeedPanel({ onClose, onOpenRestaurant, onOpenProfile, initialTag = null }) {
   const { posts, signedIn, isGuest, user, removePost, postsError } = useCloud();
@@ -88,7 +90,7 @@ export default function FeedPanel({ onClose, onOpenRestaurant, onOpenProfile, in
               <PostCard
                 key={p.id}
                 post={p}
-                restaurantName={nameById[p.restaurantId]}
+                restaurantName={nameOf(p.restaurantId)}
                 onTagClick={setTag}
                 onDelete={busy === p.id ? undefined : handleDelete}
                 canDelete={!p.cloud || p.uid === user?.uid}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { restaurants as ALL } from './data/restaurants';
+import { useRestaurants, getRestaurants } from './lib/restaurantStore';
 import { activeCity } from './data/cities';
 import Filters from './components/Filters';
 import RestaurantList from './components/RestaurantList';
@@ -46,8 +46,6 @@ const INITIAL_FILTERS = {
   showHonorable: false,
 };
 
-const CELIAC_COUNT = ALL.filter((r) => !r.honorableMention).length;
-
 // Captured once at load — the deep-link effect cleans the URL, and React
 // StrictMode re-runs effects, so we can't re-read window.location there.
 const LAUNCH_PARAMS = new URLSearchParams(window.location.search);
@@ -91,6 +89,11 @@ export default function App() {
     toggle: toggleLocate,
   } = useGeolocation();
   const { signedIn, syncStats, posts: feedPosts, user, checkIns } = useCloud();
+  const ALL = useRestaurants();
+  const CELIAC_COUNT = useMemo(
+    () => ALL.filter((r) => !r.honorableMention).length,
+    [ALL]
+  );
   const nudgeLog = useRef(loadNudgeLog());
   const pendingGpsHood = useRef(false);
 
@@ -114,6 +117,7 @@ export default function App() {
         return true;
       }),
     [
+      ALL,
       filters.showHonorable,
       filters.safety,
       filters.dedicatedFryer,
@@ -163,7 +167,9 @@ export default function App() {
     if (!position) return;
     const now = Date.now();
     let best = null;
-    for (const r of ALL) {
+    // read the list at fire time, not as a dep — a late-arriving override
+    // shouldn't re-trigger a nudge the user already dismissed
+    for (const r of getRestaurants()) {
       if (r.honorableMention) continue; // only nudge toward celiac-safe spots
       const d = haversineMiles(position, r);
       if (d > NUDGE_RADIUS_MI) continue;

@@ -1,7 +1,7 @@
 // Neighborhood index, derived from the restaurant data itself — name, spot
 // count, centroid, and bounds. No separate data file to keep in sync.
 
-import { restaurants } from '../data/restaurants';
+import { getRestaurants, subscribe } from './restaurantStore';
 import { activeCity } from '../data/cities';
 
 function avg(arr) {
@@ -17,9 +17,9 @@ export function regionForHood(name) {
   return activeCity.regionByHood[name] || REGION_ORDER[0];
 }
 
-export const NEIGHBORHOODS = (() => {
+function buildIndex(list) {
   const groups = new Map();
-  for (const r of restaurants) {
+  for (const r of list) {
     if (r.honorableMention) continue; // celiac-safe spots define the map
     const g = groups.get(r.neighborhood) || { name: r.neighborhood, lats: [], lngs: [] };
     g.lats.push(r.lat);
@@ -38,17 +38,31 @@ export const NEIGHBORHOODS = (() => {
       ],
     }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
-})();
+}
 
-// NEIGHBORHOODS grouped by region, in REGION_ORDER, each group still sorted by
-// spot count (inherited from the NEIGHBORHOODS sort above).
-export const REGIONS = REGION_ORDER.map((region) => ({
-  region,
-  hoods: NEIGHBORHOODS.filter((n) => n.region === region),
-})).filter((g) => g.hoods.length);
+function groupByRegion(hoods) {
+  return REGION_ORDER.map((region) => ({
+    region,
+    hoods: hoods.filter((n) => n.region === region),
+  })).filter((g) => g.hoods.length);
+}
+
+// Live bindings: these start from the bundled baseline and are rebuilt when a
+// runtime override changes the spot list (a spot closes, a neighborhood is
+// corrected). ES module exports are live, so importers see the new value on
+// their next read — which React drives via the re-render from useRestaurants.
+export let NEIGHBORHOODS = buildIndex(getRestaurants());
+export let REGIONS = groupByRegion(NEIGHBORHOODS);
+
+subscribe((list) => {
+  NEIGHBORHOODS = buildIndex(list);
+  REGIONS = groupByRegion(NEIGHBORHOODS);
+});
 
 export function neighborhoodSpotIds(name) {
-  return restaurants.filter((r) => r.neighborhood === name).map((r) => r.id);
+  return getRestaurants()
+    .filter((r) => r.neighborhood === name)
+    .map((r) => r.id);
 }
 
 // Closest neighborhood centroid to a {lat,lng} — for "use my location".

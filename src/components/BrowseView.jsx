@@ -1,5 +1,6 @@
 import { useMemo, useRef } from 'react';
 import { buildRails } from '../lib/browse';
+import { useRestaurants } from '../lib/restaurantStore';
 import { SAFETY_META, priceLabel } from '../lib/format';
 import { formatDistance } from '../lib/geo';
 import { photoFor, photoCredit, cuisineEmoji } from '../data/cardPhotos';
@@ -140,7 +141,11 @@ export default function BrowseView({
   onOpenMap,
   onExplainColors,
 }) {
-  const rails = useMemo(() => buildRails({ position }), [position]);
+  const restaurants = useRestaurants();
+  const rails = useMemo(
+    () => buildRails({ position, restaurants }),
+    [position, restaurants]
+  );
 
   return (
     <div className="browse">

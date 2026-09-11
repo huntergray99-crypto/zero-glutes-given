@@ -1,9 +1,12 @@
 // Earnable badges, derived from the same stats that drive points. Pure
 // functions of computeStats() output — no separate storage.
 
-import { restaurants } from '../data/restaurants';
+import { getRestaurants } from './restaurantStore';
 
-const FEATURED_COUNT = restaurants.filter((r) => r.featured && !r.honorableMention).length;
+// Read at call time: a runtime override can close a featured spot, and the
+// badge shouldn't ask for a visit that's no longer possible.
+const featuredCount = () =>
+  getRestaurants().filter((r) => r.featured && !r.honorableMention).length;
 
 export const BADGES = [
   {
@@ -59,8 +62,8 @@ export const BADGES = [
     id: 'completionist',
     icon: '🏆',
     name: 'Completionist',
-    need: `Visit all ${FEATURED_COUNT} featured spots`,
-    earned: (s) => s.featuredVisited >= FEATURED_COUNT,
+    need: () => `Visit all ${featuredCount()} featured spots`,
+    earned: (s) => s.featuredVisited >= featuredCount(),
   },
   {
     id: 'legend',
@@ -71,10 +74,13 @@ export const BADGES = [
   },
 ];
 
+// `need` may be a function when its text depends on the live spot list.
+const needText = (b) => (typeof b.need === 'function' ? b.need() : b.need);
+
 export function earnedBadges(stats) {
   return BADGES.filter((b) => b.earned(stats));
 }
 
 export function badgeProgress(stats) {
-  return BADGES.map((b) => ({ ...b, done: b.earned(stats) }));
+  return BADGES.map((b) => ({ ...b, need: needText(b), done: b.earned(stats) }));
 }
