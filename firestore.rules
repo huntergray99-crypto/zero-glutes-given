@@ -25,6 +25,20 @@ service cloud.firestore {
       allow list, write: if false;
     }
 
+    // Premium status. Deliberately its own collection rather than a field on
+    // users/{uid} — that doc is client-writable for points/handle, and
+    // carving out one un-writable field inside an otherwise-open document
+    // is exactly the kind of rule that's easy to get wrong once. Here the
+    // whole collection is admin/webhook-only: a user can read their own
+    // status (the app needs that to gate features) but never set it. A real
+    // payment webhook uses the Admin SDK, which bypasses these rules
+    // entirely, same as isAdmin() here is a stopgap until one exists.
+    match /entitlements/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list: if false;
+      allow write: if isAdmin();
+    }
+
     // Runtime corrections layered over the bundled restaurant data. Public
     // read — every visitor needs corrections applied, that's the point.
     // Admin-only write: these change published celiac safety claims.

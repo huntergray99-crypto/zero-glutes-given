@@ -5,6 +5,7 @@ import { SAFETY_META } from '../lib/format';
 import { shareApp } from '../lib/share';
 import { useCloud } from '../lib/CloudContext';
 import { useIsAdmin } from '../lib/useIsAdmin';
+import PaywallGate from './PaywallGate';
 import MyPhotos from './MyPhotos';
 import SuggestSpot from './SuggestSpot';
 
@@ -30,6 +31,7 @@ export default function ProfilePanel({
     signOut,
     posts: feedPosts,
     checkIns,
+    isPremium,
   } = useCloud();
 
   const myPostCount = signedIn
@@ -200,6 +202,16 @@ export default function ProfilePanel({
             <span style={{ width: `${progress}%` }} />
           </div>
         </div>
+
+        {isPremium ? (
+          <div className="premium-badge">✨ Premium member — thanks for backing this</div>
+        ) : (
+          <PaywallGate
+            compact
+            feature="Zero Glutes Premium"
+            pitch="Satellite map view, and more celiac-safety tools on the way."
+          />
+        )}
 
         <div className="stat-grid">
           <div>

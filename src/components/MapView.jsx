@@ -9,6 +9,9 @@ import {
 } from 'react-leaflet';
 import { SAFETY_META } from '../lib/format';
 import { activeCity } from '../data/cities';
+import { usePremiumGate } from '../lib/usePremiumGate';
+
+const PREMIUM_BASEMAPS = new Set(['satellite']);
 
 const DEFAULT_CENTER = activeCity.center;
 const DEFAULT_ZOOM = activeCity.zoom;
@@ -157,18 +160,24 @@ function KeepSized() {
 }
 
 function BasemapToggle({ value, onChange }) {
+  const { isPremium } = usePremiumGate();
   return (
     <div className="basemap-toggle">
-      {Object.entries(BASEMAPS).map(([key, cfg]) => (
-        <button
-          key={key}
-          className={value === key ? 'on' : ''}
-          onClick={() => onChange(key)}
-          type="button"
-        >
-          {cfg.label}
-        </button>
-      ))}
+      {Object.entries(BASEMAPS).map(([key, cfg]) => {
+        const locked = PREMIUM_BASEMAPS.has(key) && !isPremium;
+        return (
+          <button
+            key={key}
+            className={`${value === key ? 'on' : ''} ${locked ? 'locked' : ''}`}
+            onClick={() => onChange(key, locked)}
+            type="button"
+            title={locked ? `${cfg.label} — premium` : undefined}
+          >
+            {locked ? '🔒 ' : ''}
+            {cfg.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -253,8 +262,14 @@ export default function MapView({
 }) {
   const selected = restaurants.find((r) => r.id === selectedId) || null;
   const [basemap, setBasemap] = useState(loadBasemap);
+  const [lockedMsg, setLockedMsg] = useState(null);
 
-  function chooseBasemap(key) {
+  function chooseBasemap(key, locked) {
+    if (locked) {
+      setLockedMsg('Satellite view is a premium layer — upgrade to unlock it.');
+      setTimeout(() => setLockedMsg(null), 3000);
+      return;
+    }
     setBasemap(key);
     try {
       localStorage.setItem('zgg.basemap', key);
@@ -276,6 +291,7 @@ export default function MapView({
     <>
       <div className="map-controls">
         <BasemapToggle value={basemap} onChange={chooseBasemap} />
+        {lockedMsg ? <p className="map-locked-msg">{lockedMsg}</p> : null}
         <button
           type="button"
           className={`locate-btn ${locateStatus === 'active' ? 'on' : ''} ${

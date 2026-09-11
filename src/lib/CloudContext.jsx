@@ -37,6 +37,7 @@ import {
   saveCloudCheckIns,
   migrateLocalCheckIns,
 } from './checkins';
+import { watchEntitlement } from './entitlements';
 import {
   readLocalCheckIns,
   writeLocalCheckIns,
@@ -60,6 +61,7 @@ export function CloudProvider({ children }) {
   const [postsError, setPostsError] = useState(null);
   const [cloudCheckIns, setCloudCheckIns] = useState({});
   const [checkInsError, setCheckInsError] = useState(null);
+  const [entitlement, setEntitlement] = useState({ premium: false });
   const [localVersion, setLocalVersion] = useState(0);
   const [handle, setHandleState] = useState(currentHandle());
   const [migrated, setMigrated] = useState(hasMigrated());
@@ -110,6 +112,19 @@ export function CloudProvider({ children }) {
       console.error('checkins listener', err);
       setCheckInsError(err);
     });
+  }, [user]);
+
+  // premium entitlement — signed out is always free (premium is tied to an
+  // account, not a device, since it has to survive a reinstall)
+  useEffect(() => {
+    if (!user) {
+      // eslint-disable-next-line react/set-state-in-effect -- resetting to the signed-out default, not deriving from a prop
+      setEntitlement({ premium: false });
+      return;
+    }
+    return watchEntitlement(user.uid, setEntitlement, (err) =>
+      console.error('entitlement listener', err)
+    );
   }, [user]);
 
   const signedIn = !!user;
@@ -251,6 +266,8 @@ export function CloudProvider({ children }) {
       checkInStatus: getCheckInStatus,
       checkIn,
       undoCheckIn,
+      isPremium: entitlement.premium === true,
+      entitlement,
       syncStats,
       migrate,
       needsMigration,
@@ -276,6 +293,7 @@ export function CloudProvider({ children }) {
       getCheckInStatus,
       checkIn,
       undoCheckIn,
+      entitlement,
       syncStats,
       migrate,
       needsMigration,

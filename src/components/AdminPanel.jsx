@@ -8,6 +8,7 @@ import {
 } from '../lib/reports';
 import { useAllRestaurants } from '../lib/restaurantStore';
 import { saveOverride, clearOverride } from '../lib/overrides';
+import { getEntitlement, setEntitlement } from '../lib/entitlements';
 import { SAFETY_META } from '../lib/format';
 
 const TYPE_LABEL = Object.fromEntries(
@@ -157,6 +158,85 @@ function FixForm({ spot, onDone }) {
   );
 }
 
+// Manual premium grant/revoke by uid — the comp mechanism until a real
+// payment processor (Stripe/RevenueCat) is wired up and does this via
+// webhook instead. "uid" not "email" because that's what entitlements are
+// keyed by; find it in Firebase console → Authentication → Users.
+function CompForm() {
+  const [uid, setUid] = useState('');
+  const [status, setStatus] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  async function check() {
+    if (!uid.trim()) return;
+    setBusy(true);
+    setStatus(null);
+    try {
+      const ent = await getEntitlement(uid.trim());
+      setStatus(ent.premium ? 'premium' : 'free');
+    } catch (e) {
+      console.error('check entitlement', e);
+      setStatus('error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function grant(premium) {
+    if (!uid.trim()) return;
+    setBusy(true);
+    try {
+      await setEntitlement(uid.trim(), { premium, source: 'admin' });
+      setStatus(premium ? 'premium' : 'free');
+    } catch (e) {
+      console.error('set entitlement', e);
+      setStatus('error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <button className="link-btn admin-comp-toggle" onClick={() => setOpen(true)}>
+        ✨ Comp someone premium
+      </button>
+    );
+  }
+
+  return (
+    <div className="admin-fix admin-comp">
+      <label className="rf-row">
+        <span>User uid</span>
+        <input
+          value={uid}
+          onChange={(e) => setUid(e.target.value)}
+          placeholder="Authentication → Users → copy uid"
+        />
+      </label>
+      <div className="admin-row-actions">
+        <button className="btn btn-ghost" onClick={check} disabled={busy || !uid.trim()}>
+          Check status
+        </button>
+        <button className="btn" onClick={() => grant(true)} disabled={busy || !uid.trim()}>
+          Grant premium
+        </button>
+        <button className="btn btn-ghost" onClick={() => grant(false)} disabled={busy || !uid.trim()}>
+          Revoke
+        </button>
+      </div>
+      {status ? (
+        <p className="rf-note">
+          {status === 'error'
+            ? 'Something went wrong.'
+            : `Currently: ${status}.`}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 export default function AdminPanel({ onClose, onOpenRestaurant }) {
   const [reports, setReports] = useState([]);
   const [error, setError] = useState(null);
@@ -245,6 +325,8 @@ export default function AdminPanel({ onClose, onOpenRestaurant }) {
             <code>admins</code> allowlist, or the rules need republishing.
           </p>
         ) : null}
+
+        <CompForm />
 
         <div className="admin-filters">
           {FILTERS.map((f) => (
