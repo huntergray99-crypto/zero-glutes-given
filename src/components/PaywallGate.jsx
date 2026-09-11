@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { useCloud } from '../lib/CloudContext';
+import { startCheckout, stripeConfigured } from '../lib/stripe';
 
 // Wraps a premium feature. Renders `children` when entitled; otherwise a
 // compact, scannable lock card with the pitch and an upgrade CTA.
 //
-// No payment processor is wired up (see entitlements.js) — `onUpgradeClick`
-// defaults to a "coming soon" state so the gate is fully functional and
-// demoable today. Swap the default for a real checkout call when Stripe or
-// RevenueCat is chosen; nothing else here changes.
+// Checkout redirects to Stripe (see stripe.js) when a payment link is
+// configured; otherwise falls back to a "coming soon" state, so this stays
+// fully functional and demoable even before Stripe is set up. Either way,
+// clicking Upgrade never flips isPremium itself — that only ever happens
+// from a privileged write (admin or webhook), never the browser granting
+// itself access.
 export default function PaywallGate({
   feature,
   pitch,
@@ -15,15 +18,19 @@ export default function PaywallGate({
   compact = false,
   children,
 }) {
-  const { signedIn, isPremium } = useCloud();
+  const { signedIn, isPremium, user } = useCloud();
   const [showComingSoon, setShowComingSoon] = useState(false);
 
   if (isPremium) return children;
 
   function handleUpgrade() {
     if (onUpgradeClick) return onUpgradeClick();
+    if (signedIn && stripeConfigured()) {
+      startCheckout({ uid: user.uid, email: user.email });
+      return;
+    }
     setShowComingSoon(true);
-    setTimeout(() => setShowComingSoon(false), 3000);
+    setTimeout(() => setShowComingSoon(false), 4000);
   }
 
   return (
@@ -41,7 +48,11 @@ export default function PaywallGate({
         {signedIn ? 'Upgrade' : 'Sign in to upgrade'}
       </button>
       {showComingSoon ? (
-        <p className="rf-note">Premium isn’t open yet — check back soon.</p>
+        <p className="rf-note">
+          {signedIn
+            ? 'Premium isn’t open yet — check back soon.'
+            : 'Sign in above first, then come back here to upgrade.'}
+        </p>
       ) : null}
     </div>
   );

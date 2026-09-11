@@ -50,6 +50,7 @@ const INITIAL_FILTERS = {
 // StrictMode re-runs effects, so we can't re-read window.location there.
 const LAUNCH_PARAMS = new URLSearchParams(window.location.search);
 const LAUNCH_SPOT = LAUNCH_PARAMS.get('spot');
+const LAUNCHED_FROM_CHECKOUT = LAUNCH_PARAMS.get('upgraded') === '1';
 
 const NUDGE_RADIUS_MI = 0.3;
 const NUDGE_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour per restaurant
@@ -321,6 +322,18 @@ export default function App() {
     }
     if (window.location.search) {
       window.history.replaceState(null, '', window.location.pathname);
+    }
+
+    // Stripe checkout's success_url lands here. Activation isn't instant —
+    // see stripe.js for why granting premium stays a privileged write
+    // rather than something this redirect can flip on its own.
+    if (LAUNCHED_FROM_CHECKOUT) {
+      setToast({
+        kind: 'nudge',
+        message:
+          "Payment received — we'll activate your premium shortly. Check your card in a few minutes.",
+        duration: 8000,
+      });
     }
 
     if (!hoodSeen() && !deepLinked) setShowHoodPicker(true);
