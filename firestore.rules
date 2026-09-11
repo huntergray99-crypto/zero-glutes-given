@@ -27,6 +27,24 @@ service cloud.firestore {
         && resource.data.uid == request.auth.uid;
     }
 
+    match /reviews/{reviewId} {
+      allow read: if true;
+
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.restaurantId is string
+        && request.resource.data.rating is number
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.glutened is bool
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.handle is string;
+
+      allow update, delete: if request.auth != null
+        && resource.data.uid == request.auth.uid;
+    }
+
     match /comments/{commentId} {
       allow read: if true;
 

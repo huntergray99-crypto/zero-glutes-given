@@ -7,7 +7,8 @@ import {
   verifiedLabel,
   untilLabel,
 } from '../lib/format';
-import { getReviews, addReview, deleteReview, summarize } from '../lib/reviews';
+import { summarize } from '../lib/reviews';
+import { useReviews } from '../lib/useReviews';
 import {
   getVisits,
   checkIn,
@@ -46,6 +47,14 @@ export default function RestaurantDetail({
   const { posts: allPosts, removePost, user } = useCloud();
   const [flash, setFlash] = useState(null);
   const [shareMsg, setShareMsg] = useState(null);
+  const {
+    reviews,
+    add: addReview,
+    remove: removeReview,
+    error: reviewsError,
+    uid: reviewsUid,
+    signedIn: reviewsSignedIn,
+  } = useReviews(restaurant?.id);
   if (!restaurant) return null;
   const r = restaurant;
 
@@ -60,7 +69,6 @@ export default function RestaurantDetail({
   const meta = SAFETY_META[r.safetyLevel];
   const photo = photoFor(r);
   const credit = photoCredit(r);
-  const reviews = getReviews(r.id);
   const stats = summarize(reviews);
 
   const visits = getVisits(r.id);
@@ -75,16 +83,24 @@ export default function RestaurantDetail({
   void flash;
   const checkin = checkInStatus(r.id);
 
-  function handleAdd(payload) {
-    addReview(r.id, payload);
-    onReviewChange();
-    onProfileChange?.();
+  async function handleAdd(payload) {
+    try {
+      await addReview(payload);
+      onReviewChange();
+      onProfileChange?.();
+    } catch (err) {
+      console.error('add review', err);
+    }
   }
 
-  function handleDelete(id) {
-    deleteReview(r.id, id);
-    onReviewChange();
-    onProfileChange?.();
+  async function handleDelete(rev) {
+    try {
+      await removeReview(rev);
+      onReviewChange();
+      onProfileChange?.();
+    } catch (err) {
+      console.error('delete review', err);
+    }
   }
 
   function handleCheckIn() {
@@ -337,7 +353,19 @@ export default function RestaurantDetail({
             )}
           </h3>
 
+          {reviewsError ? (
+            <p className="rf-note rf-note-warn">
+              Reviews didn’t load — the database rules may need the new{' '}
+              <code>reviews</code> block published.
+            </p>
+          ) : null}
+
           <ReviewForm onSubmit={handleAdd} />
+          <p className="rf-note">
+            {reviewsSignedIn
+              ? 'Posted to the shared celiac-safety record for this spot.'
+              : 'Saved on this device — sign in on your card to post to the shared record.'}
+          </p>
 
           <ul className="review-list">
             {reviews.map((rev) => (
@@ -348,15 +376,19 @@ export default function RestaurantDetail({
                     {'☆'.repeat(5 - rev.rating)}
                   </span>
                   {rev.glutened ? <span className="chip-warn">Got glutened</span> : null}
-                  <button
-                    className="link-btn"
-                    onClick={() => handleDelete(rev.id)}
-                  >
-                    delete
-                  </button>
+                  {!rev.cloud || rev.uid === reviewsUid ? (
+                    <button
+                      className="link-btn"
+                      onClick={() => handleDelete(rev)}
+                    >
+                      delete
+                    </button>
+                  ) : null}
                 </div>
                 {rev.text ? <p>{rev.text}</p> : null}
-                <time>{new Date(rev.date).toLocaleDateString()}</time>
+                <time>
+                  {rev.pending ? 'just now' : new Date(rev.date).toLocaleDateString()}
+                </time>
               </li>
             ))}
           </ul>

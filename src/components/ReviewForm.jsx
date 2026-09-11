@@ -45,9 +45,6 @@ export default function ReviewForm({ onSubmit }) {
       <button type="submit" className="btn">
         Post review
       </button>
-      <p className="rf-note">
-        Reviews are saved only in this browser, on this device.
-      </p>
     </form>
   );
 }
