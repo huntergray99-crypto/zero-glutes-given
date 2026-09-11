@@ -2,6 +2,7 @@
 // and opens that restaurant.
 
 import { SAFETY_META } from './format';
+import { activeCity, cityOf } from '../data/cities';
 
 export function appUrl() {
   return `${location.origin}${location.pathname}`;
@@ -30,9 +31,11 @@ async function shareOrCopy({ title, text, url }) {
 }
 
 export function shareSpot(r) {
+  const city = cityOf(r);
+  const where = r.neighborhood === city ? city : `${r.neighborhood}, ${city}`;
   return shareOrCopy({
     title: `${r.name} — Zero Glutes Given`,
-    text: `${r.name} — ${SAFETY_META[r.safetyLevel].short}, ${r.neighborhood}, Seattle`,
+    text: `${r.name} — ${SAFETY_META[r.safetyLevel].short}, ${where}`,
     url: spotUrl(r),
   });
 }
@@ -40,7 +43,7 @@ export function shareSpot(r) {
 export function shareApp() {
   return shareOrCopy({
     title: 'Zero Glutes Given',
-    text: 'Celiac-safe dining in Seattle — a map of gluten-free spots.',
+    text: `Celiac-safe dining in ${activeCity.area} — a map of gluten-free spots.`,
     url: appUrl(),
   });
 }

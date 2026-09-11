@@ -1,17 +1,10 @@
 // Shared matcher for the header search — used by both the dropdown suggestions
 // and the filtered list/map, so they never disagree. Handles hyphens/spacing
-// and a few Seattle nicknames.
+// and the active market's local nicknames.
 
-const ALIASES = {
-  'u district': 'university district',
-  udistrict: 'university district',
-  'the ave': 'university district',
-  'cap hill': 'capitol hill',
-  caphill: 'capitol hill',
-  'u village': 'university village',
-  uvillage: 'university village',
-  slu: 'south lake union',
-};
+import { activeCity } from '../data/cities';
+
+const ALIASES = activeCity.searchAliases;
 
 const norm = (s) =>
   (s || '')

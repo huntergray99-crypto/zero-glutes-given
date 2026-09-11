@@ -2,29 +2,19 @@
 // count, centroid, and bounds. No separate data file to keep in sync.
 
 import { restaurants } from '../data/restaurants';
+import { activeCity } from '../data/cities';
 
 function avg(arr) {
   return arr.reduce((s, x) => s + x, 0) / arr.length;
 }
 
-// Metro regions. Anything not listed falls back to "Seattle" so new Seattle
-// neighborhoods keep working without a code change.
-export const REGION_ORDER = ['Seattle', 'Eastside', 'North', 'South'];
-
-const REGION_BY_HOOD = {
-  Bellevue: 'Eastside',
-  Kirkland: 'Eastside',
-  Redmond: 'Eastside',
-  'Mercer Island': 'Eastside',
-  Bothell: 'North',
-  'Federal Way': 'South',
-  Renton: 'South',
-  Kent: 'South',
-  Tukwila: 'South',
-};
+// Metro regions, from the active market config. Anything not listed falls
+// back to the core city's region so new core-city neighborhoods keep working
+// without a code change.
+export const REGION_ORDER = activeCity.regions;
 
 export function regionForHood(name) {
-  return REGION_BY_HOOD[name] || 'Seattle';
+  return activeCity.regionByHood[name] || REGION_ORDER[0];
 }
 
 export const NEIGHBORHOODS = (() => {

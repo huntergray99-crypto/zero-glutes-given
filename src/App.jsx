@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { restaurants as ALL } from './data/restaurants';
+import { activeCity } from './data/cities';
 import Filters from './components/Filters';
 import RestaurantList from './components/RestaurantList';
 import MapView from './components/MapView';
@@ -365,7 +366,7 @@ export default function App() {
           </span>
           <div className="brand-text">
             <h1>Zero Glutes Given</h1>
-            <p>Celiac-safe dining · Seattle &amp; the Eastside</p>
+            <p>Celiac-safe dining · {activeCity.area}</p>
           </div>
         </button>
 

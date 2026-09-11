@@ -8,8 +8,10 @@ import {
   useMap,
 } from 'react-leaflet';
 import { SAFETY_META } from '../lib/format';
+import { activeCity } from '../data/cities';
 
-const SEATTLE_CENTER = [47.615, -122.33];
+const DEFAULT_CENTER = activeCity.center;
+const DEFAULT_ZOOM = activeCity.zoom;
 
 // MapTiler Streets — the polished Apple/Google-Maps look. This is a client key
 // (it ships in the bundle, like every web map key); lock it to the site's
@@ -292,8 +294,8 @@ export default function MapView({
         </button>
       </div>
       <MapContainer
-        center={SEATTLE_CENTER}
-        zoom={12}
+        center={DEFAULT_CENTER}
+        zoom={DEFAULT_ZOOM}
         scrollWheelZoom
         className={`map map-${basemap}`}
         preferCanvas

@@ -2,6 +2,7 @@
 // the restaurant data (plus an optional location for a "Near you" shelf).
 
 import { restaurants } from '../data/restaurants';
+import { activeCity } from '../data/cities';
 import { REGION_ORDER, regionForHood } from './neighborhoods';
 import { haversineMiles } from './geo';
 
@@ -52,7 +53,7 @@ export function buildRails({ position } = {}) {
   rails.push({
     key: 'featured',
     title: '⭐ Community favorites',
-    subtitle: 'The spots the Seattle GF crowd rallies around',
+    subtitle: `The spots the ${activeCity.name} GF crowd rallies around`,
     spots: CELIAC.filter((r) => r.featured).sort(bySpotlightThenFeatured),
   });
 
@@ -77,15 +78,17 @@ export function buildRails({ position } = {}) {
     });
   }
 
-  // Regions beyond Seattle — one combined shelf so the expansion is visible.
+  // Regions outside the core city — one combined shelf so the expansion is
+  // visible.
+  const core = REGION_ORDER[0];
   const beyond = CELIAC.filter(
-    (r) => regionForHood(r.neighborhood) !== 'Seattle'
+    (r) => regionForHood(r.neighborhood) !== core
   ).sort(bySpotlightThenFeatured);
   if (beyond.length) {
     rails.push({
       key: 'beyond',
-      title: '🌉 Beyond Seattle',
-      subtitle: REGION_ORDER.filter((x) => x !== 'Seattle').join(' · '),
+      title: `🌉 Beyond ${core}`,
+      subtitle: REGION_ORDER.filter((x) => x !== core).join(' · '),
       spots: beyond,
     });
   }

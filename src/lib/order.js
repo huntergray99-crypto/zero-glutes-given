@@ -8,6 +8,7 @@
 //      a confirmed listing), affiliate-wrapped when the programs are configured.
 
 import { affiliate } from './affiliate';
+import { cityOf, stateOf } from '../data/cities';
 
 // Restaurant's own online ordering, where we've confirmed one. id → {url, platform}.
 const DIRECT_ORDER = {
@@ -95,9 +96,15 @@ export function menuLink(r) {
   return null;
 }
 
+// Delivery-app search text. The city comes off the restaurant's own address,
+// not the market config — a Bellevue spot searched as "… Bellevue Seattle"
+// returns nothing on DoorDash. The neighborhood is dropped when it's just
+// the city again (true for every suburb in the dataset).
 function q(r) {
+  const city = cityOf(r);
+  const hood = r.neighborhood === city ? null : r.neighborhood;
   return encodeURIComponent(
-    [r.name, r.neighborhood, 'Seattle'].filter(Boolean).join(' ')
+    [r.name, hood, city, stateOf(r)].filter(Boolean).join(' ')
   );
 }
 
