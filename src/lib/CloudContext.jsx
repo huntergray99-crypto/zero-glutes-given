@@ -32,6 +32,16 @@ import {
   addPost as addLocalPost,
   deletePost as deleteLocalPost,
 } from './posts';
+import {
+  watchCheckIns,
+  saveCloudCheckIns,
+  migrateLocalCheckIns,
+} from './checkins';
+import {
+  readLocalCheckIns,
+  writeLocalCheckIns,
+  checkInStatus as pureCheckInStatus,
+} from './profile';
 
 const Ctx = createContext(null);
 
@@ -48,6 +58,8 @@ export function CloudProvider({ children }) {
   const [cloudPosts, setCloudPosts] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [postsError, setPostsError] = useState(null);
+  const [cloudCheckIns, setCloudCheckIns] = useState({});
+  const [checkInsError, setCheckInsError] = useState(null);
   const [localVersion, setLocalVersion] = useState(0);
   const [handle, setHandleState] = useState(currentHandle());
   const [migrated, setMigrated] = useState(hasMigrated());
@@ -89,6 +101,17 @@ export function CloudProvider({ children }) {
     );
   }, [user]);
 
+  // live check-ins (punch card / points source of truth while signed in)
+  useEffect(() => {
+    if (!user) return;
+    // eslint-disable-next-line react/set-state-in-effect -- reset before (re)subscribing to an external listener
+    setCheckInsError(null);
+    return watchCheckIns(user.uid, setCloudCheckIns, (err) => {
+      console.error('checkins listener', err);
+      setCheckInsError(err);
+    });
+  }, [user]);
+
   const signedIn = !!user;
 
   // posts the UI should show: shared feed when signed in, on-device otherwise
@@ -120,6 +143,63 @@ export function CloudProvider({ children }) {
     [bumpLocal]
   );
 
+  // check-ins: { [restaurantId]: [{ date, verified }] } — shared cloud record
+  // when signed in, on-device otherwise. Centralized here (like posts) so the
+  // punch card, points, and the per-restaurant "check in" button all read the
+  // same live data instead of each polling localStorage separately.
+  const checkIns = useMemo(() => {
+    void localVersion;
+    return signedIn ? cloudCheckIns : readLocalCheckIns();
+  }, [signedIn, cloudCheckIns, localVersion]);
+
+  const getVisits = useCallback(
+    (restaurantId) => checkIns[restaurantId] ?? [],
+    [checkIns]
+  );
+
+  const getCheckInStatus = useCallback(
+    (restaurantId, now) => pureCheckInStatus(checkIns[restaurantId] ?? [], now),
+    [checkIns]
+  );
+
+  const checkIn = useCallback(
+    async (restaurantId, { verified = false } = {}) => {
+      const now = Date.now();
+      const list = checkIns[restaurantId] ?? [];
+      const status = pureCheckInStatus(list, now);
+      if (!status.allowed) {
+        return { ok: false, nextAllowedAt: status.nextAllowedAt };
+      }
+      const isFirst = list.length === 0;
+      const next = [...list, { date: new Date(now).toISOString(), verified }];
+      if (signedIn) {
+        await saveCloudCheckIns(user.uid, restaurantId, next);
+      } else {
+        writeLocalCheckIns({ ...readLocalCheckIns(), [restaurantId]: next });
+        bumpLocal();
+      }
+      return { ok: true, isFirst, count: next.length };
+    },
+    [signedIn, user, checkIns, bumpLocal]
+  );
+
+  const undoCheckIn = useCallback(
+    async (restaurantId) => {
+      const list = checkIns[restaurantId] ?? [];
+      const next = list.slice(0, -1);
+      if (signedIn) {
+        await saveCloudCheckIns(user.uid, restaurantId, next);
+      } else {
+        const map = { ...readLocalCheckIns() };
+        if (next.length) map[restaurantId] = next;
+        else delete map[restaurantId];
+        writeLocalCheckIns(map);
+        bumpLocal();
+      }
+    },
+    [signedIn, user, checkIns, bumpLocal]
+  );
+
   const updateHandle = useCallback((h) => {
     const clean = h.slice(0, 24);
     setLocalHandle(clean);
@@ -136,13 +216,20 @@ export function CloudProvider({ children }) {
 
   const migrate = useCallback(async () => {
     if (!signedIn) return 0;
-    const moved = await migrateLocalPosts(getLocalPosts());
+    const movedPosts = await migrateLocalPosts(getLocalPosts());
+    const movedCheckIns = await migrateLocalCheckIns(
+      user.uid,
+      readLocalCheckIns()
+    );
     setMigrated(true);
-    return moved;
-  }, [signedIn]);
+    return movedPosts + movedCheckIns;
+  }, [signedIn, user]);
 
+  const hasLocalCheckIns = Object.values(readLocalCheckIns()).some(
+    (v) => v?.length
+  );
   const needsMigration =
-    signedIn && !migrated && getLocalPosts().length > 0;
+    signedIn && !migrated && (getLocalPosts().length > 0 || hasLocalCheckIns);
 
   const value = useMemo(
     () => ({
@@ -158,6 +245,12 @@ export function CloudProvider({ children }) {
       updateHandle,
       addPost,
       removePost,
+      checkIns,
+      checkInsError,
+      getVisits,
+      checkInStatus: getCheckInStatus,
+      checkIn,
+      undoCheckIn,
       syncStats,
       migrate,
       needsMigration,
@@ -177,6 +270,12 @@ export function CloudProvider({ children }) {
       updateHandle,
       addPost,
       removePost,
+      checkIns,
+      checkInsError,
+      getVisits,
+      getCheckInStatus,
+      checkIn,
+      undoCheckIn,
       syncStats,
       migrate,
       needsMigration,

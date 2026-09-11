@@ -22,12 +22,13 @@ export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
     signInGuest,
     signOut,
     posts: feedPosts,
+    checkIns,
   } = useCloud();
 
   const myPostCount = signedIn
     ? feedPosts.filter((p) => p.uid === user?.uid).length
     : feedPosts.length;
-  const stats = computeStats({ posts: myPostCount });
+  const stats = computeStats({ posts: myPostCount, checkIns });
   const badges = badgeProgress(stats);
   const earnedCount = badges.filter((b) => b.done).length;
   const [handleInput, setHandleInput] = useState(handle || stats.handle);
@@ -74,7 +75,7 @@ export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
     setMigrateMsg('Moving…');
     try {
       const n = await migrate();
-      setMigrateMsg(n > 0 ? `Moved ${n} post${n > 1 ? 's' : ''} to your account.` : 'Nothing to move.');
+      setMigrateMsg(n > 0 ? `Moved ${n} item${n > 1 ? 's' : ''} to your account.` : 'Nothing to move.');
       setMigrateDone(true);
     } catch (e) {
       console.error(e);
@@ -145,9 +146,9 @@ export default function ProfilePanel({ onClose, onOpenRestaurant, version }) {
           {authError ? <p className="rf-note rf-note-warn">{authError}</p> : null}
           {needsMigration && !migrateDone ? (
             <div className="migrate">
-              <p>You have posts saved on this device. Move them to your account?</p>
+              <p>You have posts and check-ins saved on this device. Move them to your account?</p>
               <button className="btn btn-ghost" onClick={doMigrate}>
-                Move my posts
+                Move my data
               </button>
               {migrateMsg ? <span className="muted"> {migrateMsg}</span> : null}
             </div>

@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { SAFETY_META, priceLabel } from '../lib/format';
 import { getReviews, summarize } from '../lib/reviews';
-import { getVisits } from '../lib/profile';
 import { haversineMiles, formatDistance } from '../lib/geo';
+import { useCloud } from '../lib/CloudContext';
 import SuggestSpot from './SuggestSpot';
 
 function Stars({ value }) {
@@ -23,6 +23,7 @@ export default function RestaurantList({
   profileVersion,
   userPosition,
 }) {
+  const { getVisits } = useCloud();
   const refs = useRef({});
 
   useEffect(() => {

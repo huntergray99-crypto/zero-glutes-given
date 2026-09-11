@@ -1,5 +1,7 @@
-// Local profile: check-ins ("punch card"), points, handle. localStorage only for
-// now — one device, no account. A backend swap later keeps this same shape.
+// Handle + local check-in storage, and the points/level math shared by both
+// the cloud and on-device check-in paths (see checkins.js + CloudContext for
+// the cloud side — this module owns the local fallback and the pure stats
+// calculation, which doesn't care where the check-ins came from).
 
 import { restaurants } from '../data/restaurants';
 import { getReviews } from './reviews';
@@ -62,45 +64,32 @@ export function setHandle(handle) {
   return data;
 }
 
-export function getVisits(restaurantId) {
-  return read().checkIns[restaurantId] ?? [];
+// The on-device check-in store: { [restaurantId]: [{ date, verified }] }.
+// Read/written directly by the local fallback path in CloudContext, and by
+// the one-time migration into the cloud on sign-in.
+export function readLocalCheckIns() {
+  return read().checkIns;
+}
+
+export function writeLocalCheckIns(map) {
+  const data = read();
+  data.checkIns = map;
+  write(data);
 }
 
 // { allowed, nextAllowedAt } — nextAllowedAt is an epoch ms once on cooldown.
-export function checkInStatus(restaurantId, now = Date.now()) {
-  const list = read().checkIns[restaurantId] ?? [];
-  if (!list.length) return { allowed: true, nextAllowedAt: null };
-  const last = new Date(list.at(-1).date).getTime();
+// Pure: takes a visit list directly so it works for both the cloud and
+// on-device check-in paths.
+export function checkInStatus(visits, now = Date.now()) {
+  if (!visits?.length) return { allowed: true, nextAllowedAt: null };
+  const last = new Date(visits.at(-1).date).getTime();
   const nextAllowedAt = last + CHECKIN_COOLDOWN_MS;
   return { allowed: now >= nextAllowedAt, nextAllowedAt };
 }
 
-export function checkIn(restaurantId, { verified = false } = {}) {
-  const now = Date.now();
-  const status = checkInStatus(restaurantId, now);
-  if (!status.allowed) {
-    return { ok: false, nextAllowedAt: status.nextAllowedAt };
-  }
-  const data = read();
-  const list = data.checkIns[restaurantId] ?? [];
-  const isFirst = list.length === 0;
-  list.push({ date: new Date(now).toISOString(), verified });
-  data.checkIns[restaurantId] = list;
-  write(data);
-  return { ok: true, isFirst, count: list.length };
-}
-
-export function undoLastCheckIn(restaurantId) {
-  const data = read();
-  const list = data.checkIns[restaurantId] ?? [];
-  list.pop();
-  if (list.length) data.checkIns[restaurantId] = list;
-  else delete data.checkIns[restaurantId];
-  write(data);
-}
-
 // Historical cleanup: collapse multiple check-ins at one spot within any 24h
-// window down to the first (preferring a GPS-verified one). Runs once.
+// window down to the first (preferring a GPS-verified one). Runs once, local
+// data only — pre-dates cloud sync.
 export function dedupeCheckIns() {
   const data = read();
   let changed = false;
@@ -130,10 +119,10 @@ export function dedupeCheckIns() {
 
 // ---- derived stats ----
 
-// `posts` is the count of feed posts by this person (cloud when signed in,
-// on-device otherwise) — passed in because it doesn't live in this module.
-export function computeStats({ posts = 0 } = {}) {
-  const data = read();
+// `posts` is the count of feed posts by this person, and `checkIns` is
+// { [restaurantId]: visits[] } — cloud when signed in, on-device otherwise.
+// Both are passed in because neither lives in this module anymore.
+export function computeStats({ posts = 0, checkIns = {} } = {}) {
   const byId = Object.fromEntries(restaurants.map((r) => [r.id, r]));
 
   let points = 0;
@@ -143,9 +132,9 @@ export function computeStats({ posts = 0 } = {}) {
   const hoods = new Set();
   const punchCard = [];
 
-  for (const [id, list] of Object.entries(data.checkIns)) {
+  for (const [id, list] of Object.entries(checkIns)) {
     const r = byId[id];
-    if (!r) continue;
+    if (!r || !list?.length) continue;
     totalCheckIns += list.length;
     if (r.featured) featuredVisited += 1;
     hoods.add(r.neighborhood);
@@ -175,7 +164,7 @@ export function computeStats({ posts = 0 } = {}) {
   const nextLevel = LEVELS.find((l) => l.min > points) ?? null;
 
   return {
-    handle: data.handle,
+    handle: read().handle,
     points,
     level,
     nextLevel,

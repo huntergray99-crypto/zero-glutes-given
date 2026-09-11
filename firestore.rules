@@ -45,6 +45,26 @@ service cloud.firestore {
         && resource.data.uid == request.auth.uid;
     }
 
+    // One doc per (user, restaurant) pair, id `${uid}_${restaurantId}`. Visit
+    // history is per-user data, not a public feed — owner-only read/write.
+    match /checkIns/{checkInId} {
+      allow read: if request.auth != null
+        && resource.data.uid == request.auth.uid;
+
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.restaurantId is string
+        && request.resource.data.visits is list;
+
+      allow update: if request.auth != null
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.restaurantId == resource.data.restaurantId
+        && request.resource.data.visits is list;
+
+      allow delete: if false;
+    }
+
     match /comments/{commentId} {
       allow read: if true;
 

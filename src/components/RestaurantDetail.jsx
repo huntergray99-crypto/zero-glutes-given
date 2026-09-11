@@ -9,13 +9,7 @@ import {
 } from '../lib/format';
 import { summarize } from '../lib/reviews';
 import { useReviews } from '../lib/useReviews';
-import {
-  getVisits,
-  checkIn,
-  checkInStatus,
-  undoLastCheckIn,
-  POINTS,
-} from '../lib/profile';
+import { POINTS } from '../lib/profile';
 import { haversineMiles, formatDistance, walkMinutes } from '../lib/geo';
 import {
   doordashSearch,
@@ -44,7 +38,15 @@ export default function RestaurantDetail({
   onTagClick,
   userPosition,
 }) {
-  const { posts: allPosts, removePost, user } = useCloud();
+  const {
+    posts: allPosts,
+    removePost,
+    user,
+    getVisits,
+    checkInStatus,
+    checkIn,
+    undoCheckIn,
+  } = useCloud();
   const [flash, setFlash] = useState(null);
   const [shareMsg, setShareMsg] = useState(null);
   const {
@@ -103,8 +105,14 @@ export default function RestaurantDetail({
     }
   }
 
-  function handleCheckIn() {
-    const res = checkIn(r.id, { verified: canVerify });
+  async function handleCheckIn() {
+    let res;
+    try {
+      res = await checkIn(r.id, { verified: canVerify });
+    } catch (err) {
+      console.error('check in', err);
+      return;
+    }
     if (!res.ok) {
       setFlash(
         `You already checked in here today — one per spot per day. Come back in ${untilLabel(
@@ -124,8 +132,13 @@ export default function RestaurantDetail({
     onProfileChange?.();
   }
 
-  function handleUndo() {
-    undoLastCheckIn(r.id);
+  async function handleUndo() {
+    try {
+      await undoCheckIn(r.id);
+    } catch (err) {
+      console.error('undo check in', err);
+      return;
+    }
     setFlash(null);
     onProfileChange?.();
   }

@@ -87,7 +87,7 @@ export default function App() {
     start: startLocate,
     toggle: toggleLocate,
   } = useGeolocation();
-  const { signedIn, syncStats, posts: feedPosts, user } = useCloud();
+  const { signedIn, syncStats, posts: feedPosts, user, checkIns } = useCloud();
   const nudgeLog = useRef(loadNudgeLog());
   const pendingGpsHood = useRef(false);
 
@@ -198,7 +198,7 @@ export default function App() {
   // recomputed each render; cheap, and profile/review bumps force the render
   void profileVersion;
   void reviewsVersion;
-  const stats = computeStats({ posts: myPostCount });
+  const stats = computeStats({ posts: myPostCount, checkIns });
 
   // Push point/stat totals to this account's public card (drives the leaderboard
   // and cross-device sync). Fires whenever the local totals move.
