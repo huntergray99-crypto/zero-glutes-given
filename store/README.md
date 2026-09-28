@@ -9,6 +9,7 @@ The app is a web app; both store apps are thin wrappers that load
 |---|---|
 | `listing.md` | Titles, descriptions, keywords, privacy-form answers for both stores |
 | `screenshots/*.png` | 1290×2796 (iPhone 6.7"/6.9", also fine for Play phone). 6 shots. |
+| `feature-graphic.png` | 1024×500 Play feature graphic — **required** by Play for every listing |
 | `../public/privacy.html` | Privacy policy → served at `/privacy.html` |
 | `../public/.well-known/assetlinks.json` | Android TWA domain verification — **needs the signing fingerprint pasted in** |
 
@@ -25,7 +26,7 @@ The app is a web app; both store apps are thin wrappers that load
    - Verify: `curl https://zeroglutesgiven.culebramaps.com/.well-known/assetlinks.json`
 4. In Play Console: create the app, upload the `.aab` from PWABuilder.
 5. Fill in: store listing (from `listing.md`), Data safety form (answers in `listing.md`), content rating questionnaire, target audience (13+), privacy policy URL `https://zeroglutesgiven.culebramaps.com/privacy.html`.
-6. Add screenshots (min 2 phone). Add a 512×512 icon (`public/pwa-512.png`) and a 1024×500 feature graphic (needs to be made).
+6. Add screenshots (min 2 phone, use `screenshots/`). Add the 512×512 icon (`public/pwa-512.png`) and the feature graphic (`feature-graphic.png`).
 7. Submit. Review is usually 1–3 days.
 
 **Updates:** the wrapper loads the live site, so normal web deploys ship instantly. Only re-upload the `.aab` if you change the icon, name, or package config.
@@ -69,6 +70,5 @@ is only needed for native-layer changes or to satisfy "what's new".
 ---
 
 ## Still to make (not blockers, but Play/Apple ask for them)
-- **Feature graphic** 1024×500 (Play) — simple branded banner
 - **App preview video** (optional, both stores)
 - A dedicated support email (both listings show it publicly — `huntergray99@gmail.com` works but a `@culebramaps.com` address is cleaner)
