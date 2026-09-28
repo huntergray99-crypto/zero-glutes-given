@@ -31,7 +31,23 @@ pre-build. Indexes live in `firestore.indexes.json` once created — run
 `npx firebase firestore:indexes > firestore.indexes.json` to pull them down so
 they're in version control.
 
-### 3. Security rules are deployed from the repo now
+### 3. Discord alerts for new reports (skip the admin panel for triage)
+
+A closure, safety correction, or new-spot suggestion now pings a Discord
+channel the moment it's filed, so you don't have to remember to open the
+report queue. Setup: Discord → server settings → Integrations → Webhooks →
+New Webhook → Copy URL → paste into `.env` as `VITE_DISCORD_WEBHOOK_URL` →
+redeploy. Leave it unset and reports still save fine, you just won't get
+pinged.
+
+⚠️ **Trade-off, accepted on purpose:** the webhook URL ships in the client
+bundle (see `src/lib/alerts.js`). Anyone could extract it and post junk into
+that one private channel — low stakes, and regenerating the URL takes ten
+seconds in Discord's settings. The hardened version (a Cloud Function
+triggered on the Firestore write, so the URL never reaches the browser) is a
+drop-in upgrade once this app is on Blaze — see below.
+
+### 4. Security rules are deployed from the repo now
 
 Not the console. After editing `firestore.rules`:
 
@@ -81,6 +97,9 @@ Required for Cloud Functions and Storage. Unlocks, in rough value order:
   gets flagged without an admin present.
 - **Firebase Storage** → user-uploaded photos shared between users. Today
   photos are local-only per device.
+- **Hardened report alerts** → move the Discord ping (item 3 above) into a
+  Cloud Function triggered on the `reports` write, so the webhook URL never
+  ships to the browser. Not urgent — the client-side version works today.
 
 Blaze has a free tier that this app's volume would sit inside for a long time;
 the plan change is mostly about attaching a card, not about immediate cost.

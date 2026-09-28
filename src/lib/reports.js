@@ -16,6 +16,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { db, auth } from './firebase';
+import { notifyReport } from './alerts';
 
 const REPORTS = collection(db, 'reports');
 
@@ -33,22 +34,27 @@ export async function submitReport({
   restaurantName = '',
   text = '',
 }) {
+  const handle = (() => {
+    try {
+      return localStorage.getItem('zgg.handle') || null;
+    } catch {
+      return null;
+    }
+  })();
+  const trimmedText = text.trim().slice(0, 2000);
+  const trimmedName = restaurantName.slice(0, 200);
   await addDoc(REPORTS, {
     type,
     restaurantId,
-    restaurantName: restaurantName.slice(0, 200),
-    text: text.trim().slice(0, 2000),
+    restaurantName: trimmedName,
+    text: trimmedText,
     uid: auth.currentUser?.uid ?? null,
-    handle: (() => {
-      try {
-        return localStorage.getItem('zgg.handle') || null;
-      } catch {
-        return null;
-      }
-    })(),
+    handle,
     status: 'open',
     createdAt: serverTimestamp(),
   });
+  // Best-effort — see alerts.js. Never let a dead webhook fail the report.
+  notifyReport({ type, restaurantName: trimmedName, text: trimmedText, handle });
 }
 
 // ---- admin triage ----
