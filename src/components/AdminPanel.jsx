@@ -12,6 +12,7 @@ import { useAllRestaurants } from '../lib/restaurantStore';
 import { saveOverride, clearOverride } from '../lib/overrides';
 import { getEntitlement, setEntitlement } from '../lib/entitlements';
 import { trustScore, trustTier } from '../lib/trust';
+import { slugify } from '../lib/slug';
 import { SAFETY_META } from '../lib/format';
 
 const TYPE_LABEL = {
@@ -181,13 +182,6 @@ function FixForm({ spot, onDone }) {
   );
 }
 
-const slugify = (name) =>
-  name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 60);
 
 // Publish a suggested new spot straight from the report — same override
 // mechanism as FixForm, just creating a restaurant id that doesn't exist in

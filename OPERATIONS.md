@@ -139,5 +139,3 @@ nothing. Zero code changes needed — the plumbing is already there.
   Everything else reads from `src/data/cities.js`, but these are static HTML
   and need build-time templating. Worth doing when a second market is real,
   not before.
-- `slugify()` drops accented characters — "Café Organique" becomes
-  `caf-organique`. Cosmetic; ids are never shown to users.
