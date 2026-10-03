@@ -160,10 +160,13 @@ function KeepSized() {
 }
 
 function BasemapToggle({ value, onChange }) {
-  const { isPremium } = usePremiumGate();
+  const { isPremium, offered } = usePremiumGate();
+  const layers = Object.entries(BASEMAPS).filter(
+    ([key]) => offered || !PREMIUM_BASEMAPS.has(key)
+  );
   return (
     <div className="basemap-toggle">
-      {Object.entries(BASEMAPS).map(([key, cfg]) => {
+      {layers.map(([key, cfg]) => {
         const locked = PREMIUM_BASEMAPS.has(key) && !isPremium;
         return (
           <button

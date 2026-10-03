@@ -4,6 +4,7 @@ import { badgeProgress } from '../lib/badges';
 import { SAFETY_META } from '../lib/format';
 import { shareApp } from '../lib/share';
 import { useCloud } from '../lib/CloudContext';
+import { usePremiumGate } from '../lib/usePremiumGate';
 import { useIsAdmin } from '../lib/useIsAdmin';
 import PaywallGate from './PaywallGate';
 import MyPhotos from './MyPhotos';
@@ -33,6 +34,7 @@ export default function ProfilePanel({
     checkIns,
     isPremium,
   } = useCloud();
+  const { offered: premiumOffered } = usePremiumGate();
 
   const myPostCount = signedIn
     ? feedPosts.filter((p) => p.uid === user?.uid).length
@@ -205,13 +207,13 @@ export default function ProfilePanel({
 
         {isPremium ? (
           <div className="premium-badge">✨ Premium member — thanks for backing this</div>
-        ) : (
+        ) : premiumOffered ? (
           <PaywallGate
             compact
             feature="Zero Glutes Premium"
             pitch="Satellite map view, and more celiac-safety tools on the way."
           />
-        )}
+        ) : null}
 
         <div className="stat-grid">
           <div>
