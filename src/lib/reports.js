@@ -119,12 +119,21 @@ export const isUrgent = (r) => r.type === 'safety' && r.status === 'open';
 // Corroboration: N independent people filing the same report type about the
 // same spot. Done client-side over the open queue — no Cloud Function, no
 // server aggregate. Returns { [`${restaurantId}|${type}`]: count }.
+//
+// Counts distinct reporters, not reports — one account filing "closed" three
+// times is one voice, and must not be able to corroborate itself into the
+// admin panel's one-click fix. Reports with no uid can't be told apart, so
+// they all collapse into a single anonymous voice: that undercounts honest
+// signed-out reporters, deliberately, because the failure that matters here
+// is a false "two people agree" on a celiac-safety listing.
 export function corroboration(reports) {
-  const counts = {};
+  const voices = {};
   for (const r of reports) {
     if (r.status !== 'open' || !r.restaurantId) continue;
     const key = `${r.restaurantId}|${r.type}`;
-    counts[key] = (counts[key] || 0) + 1;
+    (voices[key] ??= new Set()).add(r.uid ?? 'anonymous');
   }
+  const counts = {};
+  for (const [key, set] of Object.entries(voices)) counts[key] = set.size;
   return counts;
 }
