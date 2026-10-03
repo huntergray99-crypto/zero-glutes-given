@@ -36,7 +36,8 @@ they're in version control.
 A closure, safety correction, or new-spot suggestion now pings a Discord
 channel the moment it's filed, so you don't have to remember to open the
 report queue. Setup: Discord → server settings → Integrations → Webhooks →
-New Webhook → Copy URL → paste into `.env` as `VITE_DISCORD_WEBHOOK_URL` →
+New Webhook → Copy URL → add it as a GitHub Actions variable named
+`VITE_DISCORD_WEBHOOK_URL` (see "Setting production env vars" below) →
 redeploy. Leave it unset and reports still save fine, you just won't get
 pinged.
 
@@ -60,6 +61,23 @@ overwritten by the next deploy.
 
 ---
 
+## Setting production env vars
+
+`.env` only configures your **local** dev server — it's gitignored, and the
+site is built by GitHub Actions, which never sees it. A value in `.env` will
+work on localhost and silently do nothing on the live site.
+
+For production: GitHub repo → Settings → Secrets and variables → Actions →
+**Variables** tab → New repository variable. The name must match exactly (e.g.
+`VITE_STRIPE_PAYMENT_LINK`); `deploy.yml` already forwards every `VITE_` var
+this app reads. Then re-run the deploy (push any commit, or Actions → Deploy to
+GitHub Pages → Run workflow).
+
+Use Variables, not Secrets: these values are baked into the public JS bundle
+either way, so "secret" storage would only imply a protection they don't have.
+
+---
+
 ## Costs money — deferred until you decide
 
 ### Stripe (free to set up, only costs per-transaction)
@@ -72,7 +90,8 @@ Stripe dashboard yourself:
 3. Payment links → New link → select that price.
 4. Set the success URL to `https://zeroglutesgiven.culebramaps.com/?upgraded=1`
    — the `?upgraded=1` is what triggers the "payment received" toast.
-5. Put the link in `.env` as `VITE_STRIPE_PAYMENT_LINK=` and redeploy.
+5. Add the link as a GitHub Actions variable named `VITE_STRIPE_PAYMENT_LINK`
+   (see "Setting production env vars" below) and redeploy.
 
 **Activation is manual until a webhook exists.** After someone pays, you grant
 premium by hand: admin panel → Comp premium → paste their uid → Grant. Stripe
@@ -107,7 +126,7 @@ the plan change is mostly about attaching a card, not about immediate cost.
 ### impact.com affiliate program
 
 DoorDash and Uber Eats both run consumer affiliate programs through
-impact.com. Apply, get approved, then paste the tracking links into
+impact.com. Apply, get approved, then add the tracking links as GitHub Actions variables
 `VITE_AFFIL_DOORDASH` / `VITE_AFFIL_UBEREATS` (format documented in
 `.env.example`). Until then the delivery links work fine, they just earn
 nothing. Zero code changes needed — the plumbing is already there.

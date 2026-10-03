@@ -24,7 +24,19 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      # VITE_ vars are baked into the bundle at build time, and .env is
+      # gitignored — so a value set locally never reaches the live site.
+      # Set these at GitHub → Settings → Secrets and variables → Actions →
+      # Variables. Unset = empty string, which every reader in src/ treats
+      # as "feature off" (or falls back to a baked default, for MapTiler).
       - run: npm run build
+        env:
+          VITE_STRIPE_PAYMENT_LINK: ${{ vars.VITE_STRIPE_PAYMENT_LINK }}
+          VITE_DISCORD_WEBHOOK_URL: ${{ vars.VITE_DISCORD_WEBHOOK_URL }}
+          VITE_AFFIL_DOORDASH: ${{ vars.VITE_AFFIL_DOORDASH }}
+          VITE_AFFIL_UBEREATS: ${{ vars.VITE_AFFIL_UBEREATS }}
+          VITE_AFFIL_GRUBHUB: ${{ vars.VITE_AFFIL_GRUBHUB }}
+          VITE_MAPTILER_KEY: ${{ vars.VITE_MAPTILER_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
