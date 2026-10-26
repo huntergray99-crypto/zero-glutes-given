@@ -57,7 +57,7 @@
     <div class="wrap">
       <div class="card">
         <h1>Privacy Policy</h1>
-        <p class="updated">Zero Glutes Given · Last updated September 10, 2026</p>
+        <p class="updated">Zero Glutes Given · Last updated October 26, 2026</p>
 
         <p>
           Zero Glutes Given is a map of celiac-safe and gluten-free restaurants. This
@@ -69,8 +69,10 @@
         <ul>
           <li>No ads, no analytics, no tracking pixels. Nothing is sold or shared for marketing.</li>
           <li>You can use the entire map without an account.</li>
-          <li>Signing in adds a shared feed, comments, and a points leaderboard — that is the only data that leaves your device.</li>
-          <li>Your location, when you turn it on, is used live on your device and is never stored or transmitted.</li>
+          <li>Signing in saves your reviews, check-in history, posts and comments to the cloud, and adds a shared feed and a points leaderboard.</li>
+          <li>Sending a report or a spot suggestion also leaves your device, whether or not you are signed in.</li>
+          <li>Your location, when you turn it on, is used live on your device. The coordinates are never stored or transmitted — a check-in records only the restaurant, the time, and whether your device confirmed you were nearby.</li>
+          <li>You can delete your account and everything tied to it from inside the app.</li>
         </ul>
 
         <h2>Stored on your device only</h2>
@@ -90,8 +92,10 @@
         <p>If you sign in, the following is saved to Firebase Cloud Firestore so other users can see the shared social layer:</p>
         <ul>
           <li>A display handle you choose (you do not have to use your real name)</li>
-          <li>Posts, comments, and "report a change" / "suggest a spot" submissions you write — with the restaurant they refer to and a timestamp</li>
-          <li>Your points, level, and activity counts (check-ins, reviews, posts)</li>
+          <li>Posts and comments you write — with the restaurant they refer to and a timestamp</li>
+          <li>Reviews you write (rating, whether you were glutened, and your text), shown publicly next to your handle</li>
+          <li>Your check-in history: which restaurants you checked in at, when, and whether your device confirmed you were nearby (a yes/no flag — never your coordinates). Only you can read it; other users see only your totals.</li>
+          <li>Your points, level, and activity counts (check-ins, verified check-ins, spots, reviews, posts, badges), shown on the public leaderboard card</li>
           <li>The account ID Firebase issues</li>
         </ul>
         <p>
@@ -100,13 +104,29 @@
           account and are not shown publicly unless you place them in your handle.
         </p>
 
+        <h2>Reports and spot suggestions</h2>
+        <p>
+          When you use "report a change" or "suggest a spot," what you write is saved to
+          Firebase Cloud Firestore with the restaurant it refers to and a timestamp — and, if
+          you are signed in, your handle and account ID. You do not need to be signed in to
+          send one. Reports are not public; only you and the app's operators can read them.
+        </p>
+        <p>
+          When a report arrives, a notification containing the restaurant name, your text, and
+          your handle (if any) may be sent to a private moderation channel on Discord
+          (Discord Inc.) so a person can review it quickly. Please don't put personal
+          information in a report.
+        </p>
+
         <h2>Location</h2>
         <p>
           If you tap "Use my location," the app reads your device's GPS position to center
           the map, pick your nearest neighborhood, and confirm you are at a restaurant for a
           check-in bonus. This happens entirely on your device in real time. Your
           coordinates are not saved, logged, or sent to any server — not ours, not Firebase.
-          You can turn it off at any time; the app works without it.
+          A check-in saves the restaurant, the time, and a yes/no flag for whether your device
+          confirmed you were there. You can turn location off at any time; the app works
+          without it.
         </p>
 
         <h2>Other services the app touches</h2>
@@ -125,12 +145,30 @@
             sites or apps. Once you leave Zero Glutes Given, their privacy policies apply.
             These links may pass through an affiliate redirect that records the click.
           </li>
+          <li>
+            Premium purchases, if and when they are offered, are handled by Stripe (Stripe, Inc.)
+            on its own checkout page. Stripe receives your account ID and email address to
+            complete the purchase. We learn whether it succeeded; we never see your card details.
+          </li>
         </ul>
 
-        <h2>Data retention and deletion</h2>
+        <h2 id="delete">Deleting your account and data</h2>
+        <p>To delete your Zero Glutes Given account and the data tied to it:</p>
+        <ol>
+          <li>Open the app and tap your points badge at the top to open <strong>Your card</strong>.</li>
+          <li>Tap <strong>Delete my account</strong>, then <strong>Yes, delete everything</strong>. If you signed in with Google, you'll be asked to confirm that Google account first.</li>
+        </ol>
+        <p>
+          This immediately and permanently removes your posts, comments, reviews, check-in
+          history, reports, leaderboard card, and your sign-in. It cannot be undone.
+        </p>
+        <p>
+          <strong>Can't open the app, or signed in as a guest on a device you no longer have?</strong>
+          Email the address below, tell us your handle, and we will delete it for you.
+        </p>
         <ul>
-          <li><strong>Device data:</strong> you control it — clear it in your browser or OS settings.</li>
-          <li><strong>Cloud data:</strong> to delete your account and its posts, email the address below and we will remove them from Firestore.</li>
+          <li><strong>Device data:</strong> you control it — clear it in your browser or OS settings. Deleting your account does not erase what is saved only on your device.</li>
+          <li><strong>Kept after deletion:</strong> a record of any Premium purchase, as needed for tax, accounting, and refunds. A moderation notification already delivered to Discord is not recalled automatically; we will remove it on request.</li>
         </ul>
 
         <h2>Children</h2>

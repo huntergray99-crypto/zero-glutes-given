@@ -55,11 +55,14 @@ Coverage is Seattle-focused today and growing. Spot missing? Tell us in the app.
 
 **Data safety form answers**
 - Collects: Name, Email address, User IDs — only if the user signs in with Google
-- Collects: User-generated content (posts, comments, reviews) — if signed in
-- Location: **Not collected** (used on-device only, never leaves the device)
+- Collects: User-generated content (posts, comments, reviews, reports, spot suggestions) — reviews/posts/comments need sign-in; reports do not
+- Collects: **Precise location — declare it** (see note below). The check-in history stores which restaurant, when, and a yes/no "device confirmed you were nearby" flag. Linked to the user, **not shared**, optional, purpose: App functionality. Raw GPS coordinates themselves are never stored or sent.
 - Data encrypted in transit: Yes
-- Users can request deletion: Yes (via email)
+- Users can request deletion: **Yes — in the app** (Your card → Delete my account) **and via the web link below**
+- **Data deletion URL** (required field on Play when an app has accounts): `https://zeroglutesgiven.culebramaps.com/privacy.html#delete`
 - No data shared with third parties for advertising
+
+> **Judgment call — location.** This section previously said "Location: Not collected." That stopped being safe when check-in history moved to the cloud: a saved record of "this user was at restaurant X at time T" is a location history, even though no coordinates are stored. Google's definition of *collected* is "transmitted off the device," and under-declaring is the policy violation — over-declaring costs only a slightly more cautious-looking label. Recommended: declare it. If you'd rather classify check-ins purely as user-generated content, that's defensible, but it's your call to make on the form, not an assumption to leave in the doc.
 
 ---
 
@@ -129,8 +132,9 @@ https://zeroglutesgiven.culebramaps.com
 
 **App Privacy answers (App Store Connect)**
 - Contact Info → Name, Email: collected, linked to identity, "App Functionality", only on Google sign-in
-- User Content → other user content: collected, linked, "App Functionality"
+- User Content → other user content (posts, comments, reviews, reports, check-ins): collected, linked, "App Functionality"
 - Identifiers → User ID: collected, linked, "App Functionality"
-- Location: **not collected**
+- Location → Precise Location: **declare it** — check-in history records which restaurant and when (never coordinates); collected, linked, "App Functionality". Same judgment call as the Play form above; over-declaring is the safe direction.
 - Tracking: No
 - Data used to track you: None
+- **Account deletion:** in-app (Your card → Delete my account) — Apple guideline 5.1.1(v) requires this, and it is now implemented.

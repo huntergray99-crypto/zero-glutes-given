@@ -7,6 +7,37 @@ be done from the codebase alone. Grouped by whether it costs money.
 
 ## Free — do these next
 
+### 0. Shipping in-app account deletion — do these in order
+
+Both stores require users to be able to delete their account from inside the
+app. It's built (Your card → Delete my account → `src/lib/account.js`), but it
+needs **new Firestore rules**, which deploy separately from the site:
+
+```bash
+npm run rules:deploy   # 1. rules first
+git push               # 2. then the site
+```
+
+Reverse order isn't dangerous — until the rules land, tapping delete fails
+visibly ("something went wrong") and removes nothing — but rules first means
+there's never a window where the button exists and can't work.
+
+**Verified without the new rules** (live, against production): the confirm
+step, the error message, and that a failed attempt leaves the account and all
+its data intact. **Not verified until the rules are deployed:** a deletion that
+actually succeeds — that's the check to run right after step 1.
+
+**One path I can't test for you:** deleting a *Google* account re-prompts for
+your Google sign-in first, and I can't sign into Google on your behalf. Test it
+once with a throwaway Google account before submitting to a store, not with your
+real one — a successful delete really does delete.
+
+In **Play Console** (App content → Data safety):
+- **Data deletion URL:** `https://zeroglutesgiven.culebramaps.com/privacy.html#delete`
+- **Location:** read the "judgment call" note in `store/listing.md` before
+  answering. The previous "not collected" answer stopped being safe when
+  check-in history moved to the cloud.
+
 ### 1. Temp admin access (blocks admin-panel verification)
 
 The admin panel is gated on a doc existing at `admins/{your-uid}` in Firestore.
@@ -22,6 +53,13 @@ Get your uid from the browser console on the live site:
 
 Remove the doc when done. Signed-in state is cached, so sign out and back in
 (or hard-reload) after adding it.
+
+⚠️ **Use the uid of a Google-signed-in account, not a guest.** A guest ("anonymous")
+uid lives in one browser's storage; clear site data or switch machines and it's
+gone for good, taking the only admin access with it — and there is deliberately
+no way to grant it back from the app. The `admins` collection currently holds a
+single doc under an anonymous uid. Sign in with Google, add *that* uid, then
+delete the old one.
 
 ### 2. Firestore composite indexes
 
@@ -130,6 +168,23 @@ impact.com. Apply, get approved, then add the tracking links as GitHub Actions v
 `VITE_AFFIL_DOORDASH` / `VITE_AFFIL_UBEREATS` (format documented in
 `.env.example`). Until then the delivery links work fine, they just earn
 nothing. Zero code changes needed — the plumbing is already there.
+
+---
+
+## iOS-specific risks (look at these before the App Store, not after a rejection)
+
+Neither blocks Play. Both are about the Capacitor iOS wrapper.
+
+- **Google sign-in in an embedded WebView.** Google blocks OAuth inside embedded
+  WebViews (`disallowed_useragent`), and Capacitor's iOS shell is one. The popup
+  sign-in this app uses is likely to fail there; guest sign-in will work.
+  Android is fine — a Trusted Web Activity runs in Chrome, not a WebView. Verify
+  on a real iOS build.
+- **Sign in with Apple (guideline 4.8).** Apps that offer Google sign-in are
+  expected to offer an equivalent privacy-preserving option too, and "continue
+  as guest" is probably not what a reviewer will count as one. Plan for either
+  adding Sign in with Apple or removing Google sign-in from the iOS build.
+- **Stripe vs. in-app purchase (guideline 3.1.1)** — see the Stripe section above.
 
 ---
 
