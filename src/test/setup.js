@@ -15,6 +15,8 @@ vi.mock('firebase/auth', () => ({
   signInWithPopup: noop,
   signInAnonymously: noop,
   signOut: noop,
+  deleteUser: noop,
+  reauthenticateWithPopup: noop,
 }));
 
 vi.mock('firebase/firestore', () => ({
@@ -32,5 +34,6 @@ vi.mock('firebase/firestore', () => ({
   where: () => ({}),
   orderBy: () => ({}),
   limit: () => ({}),
+  writeBatch: () => ({ delete: noop, commit: noop }),
   serverTimestamp: () => 'SERVER_TIMESTAMP',
 }));

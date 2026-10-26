@@ -26,6 +26,7 @@ import {
 import { auth, db } from './firebase';
 import { parseHashtags } from './posts';
 import { earnedBadges } from './badges';
+import { isDeletingAccount } from './account';
 
 const POSTS = collection(db, 'posts');
 const USERS = collection(db, 'users');
@@ -128,6 +129,9 @@ export function setLocalHandle(handle) {
 export async function syncUserCard(stats) {
   const user = auth.currentUser;
   if (!user) return;
+  // Mid-deletion, stats change because the data is being removed — syncing
+  // then would resurrect the card deleteAccount() is about to remove.
+  if (isDeletingAccount()) return;
   await setDoc(
     doc(db, 'users', user.uid),
     {

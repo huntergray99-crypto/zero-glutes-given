@@ -1501,6 +1501,41 @@ button.map-legend:hover {
   margin-bottom: 8px;
 }
 
+.delete-account {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.delete-account p {
+  margin-bottom: 8px;
+}
+
+.delete-link {
+  background: none;
+  border: 0;
+  padding: 6px 0;
+  color: var(--muted);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.delete-link:hover {
+  color: var(--warn);
+}
+
+.btn-danger {
+  background: var(--warn-bg);
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+.btn-danger:hover {
+  filter: brightness(1.15);
+}
+
 .rf-note-warn {
   color: var(--warn);
 }

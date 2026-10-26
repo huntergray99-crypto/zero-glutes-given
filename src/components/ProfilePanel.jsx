@@ -9,6 +9,7 @@ import { useIsAdmin } from '../lib/useIsAdmin';
 import PaywallGate from './PaywallGate';
 import MyPhotos from './MyPhotos';
 import SuggestSpot from './SuggestSpot';
+import DeleteAccount from './DeleteAccount';
 
 export default function ProfilePanel({
   onClose,
@@ -166,6 +167,7 @@ export default function ProfilePanel({
           ) : migrateDone && migrateMsg ? (
             <p className="muted">{migrateMsg}</p>
           ) : null}
+          {authReady && signedIn ? <DeleteAccount /> : null}
         </div>
 
         {isAdmin ? (

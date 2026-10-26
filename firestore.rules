@@ -1,13 +1,19 @@
 rules_version = '2';
 
 // Zero Glutes Given — shared social layer.
-// Paste this into: Firebase console → Firestore Database → Rules → Publish.
+// Deploy with `npm run rules:deploy` (not the console — a console paste is
+// silently overwritten by the next deploy).
 //
 // Model:
 //   posts/{id}  — public read; any signed-in user (Google or anonymous) can
 //                 create a post they own; only the author can edit/delete it.
 //   users/{uid} — public read (leaderboard + handles); a user may only write
-//                 their own card.
+//                 or delete their own card.
+//
+// Every user-owned collection lets its owner delete their own documents.
+// That is what makes in-app account deletion possible (src/lib/account.js),
+// which both app stores require — a rule that forbids deletion would leave a
+// user with no way to remove their own data.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -81,7 +87,8 @@ service cloud.firestore {
     }
 
     // One doc per (user, restaurant) pair, id `${uid}_${restaurantId}`. Visit
-    // history is per-user data, not a public feed — owner-only read/write.
+    // history is per-user data, not a public feed — owner-only read/write,
+    // including delete (account deletion removes the whole history).
     match /checkIns/{checkInId} {
       allow read: if request.auth != null
         && resource.data.uid == request.auth.uid;
@@ -97,7 +104,8 @@ service cloud.firestore {
         && request.resource.data.restaurantId == resource.data.restaurantId
         && request.resource.data.visits is list;
 
-      allow delete: if false;
+      allow delete: if request.auth != null
+        && resource.data.uid == request.auth.uid;
     }
 
     match /comments/{commentId} {
@@ -118,22 +126,31 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if true;
 
-      allow write: if request.auth != null
+      // create/update are validated; delete is split out because a delete has
+      // no request.resource, so the validations above would error and deny it.
+      allow create, update: if request.auth != null
         && request.auth.uid == userId
         && request.resource.data.points is number
         && request.resource.data.handle is string
         && request.resource.data.handle.size() <= 24;
+
+      allow delete: if request.auth != null
+        && request.auth.uid == userId;
     }
 
     // Community corrections / suggestions. Anyone may file one (auth
-    // optional); only an allowlisted admin can read or triage them.
+    // optional); only an allowlisted admin can triage them. A reporter can
+    // read and retract only their own — which is what lets account deletion
+    // find and remove them. Nobody else's reports are ever readable.
     match /reports/{reportId} {
-      allow read: if isAdmin();
+      allow read: if isAdmin()
+        || (request.auth != null && resource.data.uid == request.auth.uid);
 
       allow update: if isAdmin()
         && request.resource.data.status in ['open', 'resolved'];
 
-      allow delete: if false;
+      allow delete: if request.auth != null
+        && resource.data.uid == request.auth.uid;
 
       allow create: if request.resource.data.type is string
         && request.resource.data.text is string
